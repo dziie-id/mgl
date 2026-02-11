@@ -11,7 +11,7 @@ header('Content-Type: application/json');
 
 if (!isset($_SESSION['admin_logged_in'])) {
     ob_end_clean();
-    echo json_encode(['error' => 'Login dulu bang']);
+    echo json_encode(['error' => 'Sesi habis, login ulang bang']);
     exit;
 }
 
@@ -24,27 +24,23 @@ if (empty($topic)) {
 
 $apiKey = trim(GEMINI_API_KEY);
 
-// Tetap di v1 biar gak "Model Not Found"
-$url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+// KITA PAKAI v1beta LAGI (Karena paling lengkap fiturnya)
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
-// Prompt dipertegas agar hasilnya rapi
-$prompt = "Buatkan artikel blog SEO Bahasa Indonesia untuk website 'MGL Sticker'. 
+$prompt = "Buat artikel blog SEO Bahasa Indonesia untuk website 'MGL Sticker'. 
 Topik: $topic. 
-Berikan hasil dalam format JSON murni dengan struktur:
+Output WAJIB JSON murni.
+Struktur:
 {
   \"judul\": \"...\",
   \"konten\": \"... (pake html h2, p, li)\",
   \"meta_desc\": \"...\",
   \"keywords\": \"...\"
-}
-PENTING: Jangan berikan kata pembuka, langsung JSON saja.";
+}";
 
 $data = [
-    "contents" => [["parts" => [["text" => $prompt]]]],
-    "generationConfig" => [
-        "temperature" => 0.7
-        // "response_mime_type" DIHAPUS karena bikin error di v1
-    ]
+    "contents" => [["parts" => [["text" => $prompt]]]]
+    // response_mime_type DIHAPUS karena bikin error di beberapa akun
 ];
 
 $ch = curl_init($url);
@@ -66,13 +62,17 @@ if ($http_code === 200) {
     $result = json_decode($response, true);
     $raw_text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
-    // --- JURUS SAPU BERSIH MARKDOWN ---
-    // AI sering membungkus JSON pake ```json ... ```, kita buang manual
-    $clean_json = str_replace(['```json', '```'], '', $raw_text);
-    $clean_json = trim($clean_json);
+    // --- JURUS SARINGAN SUPER ---
+    // Mencari bagian awal { dan bagian akhir } biar gak keder sama teks tambahan AI
+    $start_pos = strpos($raw_text, '{');
+    $end_pos = strrpos($raw_text, '}');
 
-    // Kirim hasil ke Javascript
-    echo $clean_json;
+    if ($start_pos !== false && $end_pos !== false) {
+        $json_only = substr($raw_text, $start_pos, ($end_pos - $start_pos) + 1);
+        echo $json_only; // KIRIM KE JAVASCRIPT
+    } else {
+        echo json_encode(['error' => 'Format AI kacau, coba lagi bang']);
+    }
 } else {
     $res_box = json_decode($response, true);
     $pesan_google = $res_box['error']['message'] ?? 'Koneksi Gagal';
