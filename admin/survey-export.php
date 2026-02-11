@@ -7,9 +7,7 @@ $stmt = $pdo->prepare("SELECT * FROM surveys WHERE id = ?");
 $stmt->execute([$id]);
 $client = $stmt->fetch();
 
-if (!$client) {
-    die("Data tidak ditemukan.");
-}
+if (!$client) { die("Data tidak ditemukan."); }
 
 // Ambil rincian item
 $items = $pdo->prepare("SELECT * FROM survey_items WHERE survey_id = ? ORDER BY id ASC");
@@ -18,7 +16,6 @@ $survey_list = $items->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <title>SURVEY_<?= strtoupper(str_replace(' ', '_', $client['nama_klien'])) ?></title>
@@ -30,11 +27,11 @@ $survey_list = $items->fetchAll();
             margin: 10mm;
         }
 
-        body {
-            background: white;
-            color: black;
+        body { 
+            background: white; 
+            color: black; 
             font-family: 'Arial', sans-serif;
-            font-size: 13px;
+            font-size: 13px; 
         }
 
         .header-report {
@@ -43,8 +40,8 @@ $survey_list = $items->fetchAll();
             padding-bottom: 10px;
         }
 
-        .table th {
-            background-color: #f2f2f2 !important;
+        .table th { 
+            background-color: #f2f2f2 !important; 
             color: black !important;
             text-transform: uppercase;
             font-size: 11px;
@@ -52,8 +49,7 @@ $survey_list = $items->fetchAll();
         }
 
         .img-report {
-            width: 180px;
-            /* Lebih lebar karena landscape */
+            width: 180px; /* Lebih lebar karena landscape */
             height: 110px;
             object-fit: cover;
             border: 1px solid #ddd;
@@ -67,23 +63,13 @@ $survey_list = $items->fetchAll();
         }
 
         @media print {
-            .no-print {
-                display: none !important;
-            }
-
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .table {
-                width: 100% !important;
-            }
+            .no-print { display: none !important; }
+            body { -webkit-print-color-adjust: exact; }
+            .table { width: 100% !important; }
         }
     </style>
 </head>
-
-<body window.print()>
+<body onload="window.print()">
 
     <div class="container-fluid py-3">
         <!-- HEADER -->
@@ -125,25 +111,25 @@ $survey_list = $items->fetchAll();
                 </tr>
             </thead>
             <tbody>
-                <?php
+                <?php 
                 $no = 1;
-                foreach ($survey_list as $itm):
+                foreach($survey_list as $itm): 
                 ?>
-                    <tr>
-                        <td class="text-center"><?= $no++ ?></td>
-                        <td class="fw-bold text-uppercase"><?= hsc($itm['nama_bagian']) ?></td>
-                        <td class="text-center"><?= $itm['p'] ?: '-' ?></td>
-                        <td class="text-center"><?= $itm['l'] ?: '-' ?></td>
-                        <td class="text-center"><?= $itm['t'] ?: '-' ?></td>
-                        <td class="text-center fw-bold"><?= $itm['qty'] ?></td>
-                        <td class="text-center py-2">
-                            <?php if (!empty($itm['foto_item']) && file_exists("../uploads/survey/" . $itm['foto_item'])): ?>
-                                <img src="../uploads/survey/<?= $itm['foto_item'] ?>" class="img-report">
-                            <?php else: ?>
-                                <div class="text-muted small">Tidak ada foto</div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
+                <tr>
+                    <td class="text-center"><?= $no++ ?></td>
+                    <td class="fw-bold text-uppercase"><?= hsc($itm['nama_bagian']) ?></td>
+                    <td class="text-center"><?= $itm['p'] ?: '-' ?></td>
+                    <td class="text-center"><?= $itm['l'] ?: '-' ?></td>
+                    <td class="text-center"><?= $itm['t'] ?: '-' ?></td>
+                    <td class="text-center fw-bold"><?= $itm['qty'] ?></td>
+                    <td class="text-center py-2">
+                        <?php if(!empty($itm['foto_item']) && file_exists("../uploads/survey/".$itm['foto_item'])): ?>
+                            <img src="../uploads/survey/<?= $itm['foto_item'] ?>" class="img-report">
+                        <?php else: ?>
+                            <div class="text-muted small">Tidak ada foto</div>
+                        <?php endif; ?>
+                    </td>
+                </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
@@ -175,12 +161,10 @@ $survey_list = $items->fetchAll();
     </div>
 
 </body>
-
 </html>
-<?php
+<?php 
 // Fungsi helper biar aman dari XSS
-function hsc($str)
-{
+function hsc($str) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 ?>
