@@ -167,4 +167,11 @@ $survey_list = $items->fetchAll();
 function hsc($str) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
+<script>
+// Cek jika user pakai HP
+if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    alert("Tips: Untuk hasil terbaik di HP, silakan pilih 'Landscape' (Mendatar) pada menu 'Orientasi' di pengaturan cetak.");
+}
+window.print();
+</script>
 ?>
