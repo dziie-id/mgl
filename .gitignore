@@ -2,8 +2,10 @@
 /uploads/survey/*
 /uploads/articles/*
 /uploads/gallery/*
+/includes/*
 
 # But, keep the .gitkeep files so Git can track the empty directories
 !/uploads/survey/.gitkeep
 !/uploads/articles/.gitkeep
 !/uploads/gallery/.gitkeep
+!/includes/.gitkeep
