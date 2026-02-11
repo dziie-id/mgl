@@ -67,7 +67,7 @@ try {
         }
     </style>
 </head>
-<body onload="window.print()">
+<body>
 
     <div class="container-fluid py-3">
         
