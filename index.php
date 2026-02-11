@@ -18,18 +18,56 @@ $random_art = $stmt_art->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>assets/img/favicon.png">
+    <link rel="canonical" href="<?= BASE_URL ?>" />
     <meta name="robots" content="index, follow">
     <meta name="author" content="Sticker MGL">
-    <title>Jasa Branding Mobil & Pasang Sticker Premium | Sticker MGL</title>
-    <meta name="description" content="Ahlinya jasa branding mobil, wrapping full body, dan pasang sticker kaca film terdekat. Menggunakan bahan premium (Oracal/3M) dengan pengerjaan presisi dan bergaransi.">
-    <meta name="keywords" content="jasa branding mobil, jasa pasang sticker, wrapping mobil, sticker mobil, cutting sticker, kaca film gedung, sticker mgl">
+    <title>Jasa Branding Mobil & Pasang Sticker Premium | MGL Sticker</title>
+    <meta name="description" content="Ahlinya jasa branding mobil, wrapping full body, dan pasang sticker kaca film di Ciledug, Tangerang. Menggunakan bahan premium (Oracal/3M) presisi & bergaransi.">
+    <meta name="keywords" content="jasa branding mobil tangerang, wrapping mobil ciledug, sticker kaca kantor, cutting sticker tangerang, sticker mgl jakarta, kaca film gedung">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= BASE_URL ?>">
+    <meta property="og:title" content="MGL Sticker | Spesialis Branding & Wrapping Mobil Premium">
+    <meta property="og:description" content="Transformasi kendaraan & bangunan Anda dengan sticker kualitas dunia di MGL Sticker.">
+    <meta property="og:image" content="<?= BASE_URL ?>assets/img/og-image.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style-front.css">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            "name": "MGL Sticker",
+            "image": "<?= BASE_URL ?>assets/img/favicon.png",
+            "@id": "<?= BASE_URL ?>",
+            "url": "<?= BASE_URL ?>",
+            "telephone": "+62895333029272",
+            "priceRange": "$$",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Jl. Saji 1 No.74, RT.001/RW.010, Sudimara Tim., Kec. Ciledug",
+                "addressLocality": "Kota Tangerang",
+                "addressRegion": "Banten",
+                "postalCode": "15151",
+                "addressCountry": "ID"
+            },
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": -6.233239520789305,
+                "longitude": 106.72007675092298
+            },
+            "openingHoursSpecification": {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "opens": "09:00",
+                "closes": "18:00"
+            }
+        }
+    </script>
 
     <style>
         :root {
