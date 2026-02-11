@@ -1,33 +1,46 @@
 <?php
-// 1. Matikan output lain agar JSON bersih
-ob_clean();
+// 1. Bersihkan output buffer agar tidak ada spasi/error yang merusak JSON
+ob_start();
 error_reporting(0);
-header('Content-Type: application/json');
 
 include '../includes/db.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Header JSON ditaruh di sini
+header('Content-Type: application/json');
+
 // 2. Cek Login
 if (!isset($_SESSION['admin_logged_in'])) {
-    echo json_encode(['error' => 'Sesi habis, silakan login ulang']);
+    ob_end_clean();
+    echo json_encode(['error' => 'Login dulu bang']);
     exit;
 }
 
 $topic = $_POST['topic'] ?? '';
 if (empty($topic)) {
+    ob_end_clean();
     echo json_encode(['error' => 'Topik belum diisi bang']);
     exit;
 }
 
-// 3. Ambil API Key & Bersihkan
+// 3. Ambil API Key
 $apiKey = trim(GEMINI_API_KEY);
 
-// Jalur v1beta biasanya lebih stabil buat key baru
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+// --- UPDATE URL KE v1 (JALUR STABIL) ---
+$url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
-$prompt = "Tulis artikel blog SEO Bahasa Indonesia untuk 'MGL Sticker'. Topik: $topic. Balas HANYA JSON: {'judul': '...', 'konten': '... (pake html h2, p, li)', 'meta_desc': '...', 'keywords': '...'}";
+$prompt = "Buat artikel blog SEO Bahasa Indonesia untuk website 'MGL Sticker'. 
+Topik: $topic. 
+Berikan hasil dalam format JSON murni.
+Struktur JSON:
+{
+  \"judul\": \"Judul Menarik\",
+  \"konten\": \"Isi artikel minimal 500 kata, gunakan tag HTML h2, p, li agar rapi\",
+  \"meta_desc\": \"Ringkasan 160 karakter\",
+  \"keywords\": \"5 kata kunci dipisah koma\"
+}";
 
 $data = [
     "contents" => [["parts" => [["text" => $prompt]]]],
@@ -51,19 +64,18 @@ $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
+// Ambil hasil buffer dan bersihkan
+ob_end_clean();
+
 // 5. Analisis Jawaban
 if ($http_code === 200) {
     $result = json_decode($response, true);
     $clean_json = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
-    echo $clean_json; // SUKSES
+    echo $clean_json; // SUKSES KIRIM JSON KE JAVASCRIPT
 } else {
     $res_box = json_decode($response, true);
-    $pesan = $res_box['error']['message'] ?? 'Koneksi ke Google Gagal';
+    $pesan_google = $res_box['error']['message'] ?? 'Koneksi Gagal';
 
-    // Jika masih "API key not valid", berarti Google butuh waktu propagasi
-    if (strpos($pesan, 'not valid') !== false) {
-        echo json_encode(['error' => 'Google sedang memproses API Key baru abang. Tunggu 1-2 menit terus coba lagi bang!']);
-    } else {
-        echo json_encode(['error' => 'Google Bilang: ' . $pesan]);
-    }
+    // Kirim pesan error asli dari Google biar ketahuan masalahnya
+    echo json_encode(['error' => 'Google Bilang: ' . $pesan_google]);
 }
