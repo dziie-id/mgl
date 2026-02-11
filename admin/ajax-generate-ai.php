@@ -17,20 +17,17 @@ if (!isset($_SESSION['admin_logged_in'])) {
 $topic = $_POST['topic'] ?? '';
 $apiKey = trim(GEMINI_API_KEY);
 
-// --- PAKAI MODEL 2.0 FLASH (TERBARU) ---
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+// --- PAKAI MODEL 1.5 FLASH & JALUR v1 (PALING STABIL & JATAH BANYAK) ---
+$url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
-$prompt = "Tulis artikel SEO blog Bahasa Indonesia untuk website 'MGL Sticker'. Topik: $topic. Balas HANYA dengan format JSON murni: {\"judul\":\"...\",\"konten\":\"... (pake html h2, p)\",\"meta_desc\":\"...\",\"keywords\":\"...\"}";
+$prompt = "Buat artikel SEO blog Bahasa Indonesia untuk 'MGL Sticker'. Topik: $topic. Balas HANYA JSON murni: {\"judul\":\"...\",\"konten\":\"... (HTML h2, p, li)\",\"meta_desc\":\"...\",\"keywords\":\"...\"}";
 
 $data = [
     "contents" => [["parts" => [["text" => $prompt]]]]
 ];
 
 $ch = curl_init($url);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/json',
-    'X-goog-api-key: ' . $apiKey // CARA BARU KIRIM KEY (LEBIH AMPUH)
-]);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -48,17 +45,23 @@ if ($http_code === 200) {
     $result = json_decode($response, true);
     $raw_text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
-    // Pembersihan manual kalau AI-nya cerewet
+    // Saringan JSON
     $start = strpos($raw_text, '{');
     $end = strrpos($raw_text, '}');
 
     if ($start !== false && $end !== false) {
         echo substr($raw_text, $start, ($end - $start) + 1);
     } else {
-        echo json_encode(['error' => 'AI ngasih jawaban tapi bukan format data. Coba lagi bang.']);
+        echo json_encode(['error' => 'AI ngirim format salah. Coba lagi bang.']);
     }
 } else {
     $res_err = json_decode($response, true);
-    $pesan = $res_err['error']['message'] ?? 'Error ' . $http_code;
-    echo json_encode(['error' => 'Google Bilang: ' . $pesan]);
+    $pesan = $res_err['error']['message'] ?? 'Quota Habis/Error';
+
+    // Kasih solusi kalau kuota habis
+    if (strpos($pesan, 'quota') !== false || $http_code == 429) {
+        echo json_encode(['error' => 'Google lagi pelit kuota di akun ini. Coba pake Akun Google lain buat bikin API Key baru, atau tunggu 1 jam lagi bang.']);
+    } else {
+        echo json_encode(['error' => 'Google Bilang: ' . $pesan]);
+    }
 }
