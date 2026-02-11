@@ -84,7 +84,7 @@ $surveys = $pdo->query("SELECT * FROM surveys ORDER BY id DESC")->fetchAll();
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0 align-middle">
-                        <thead class="table-light small text-center">
+                        <thead class="table small text-center">
                             <tr>
                                 <th>Item</th>
                                 <th>P</th><th>L</th><th>T</th><th>Qty</th>
