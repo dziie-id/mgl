@@ -219,4 +219,58 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 2
         });
     });
 </script>
+<script>
+    document.getElementById('btn_generate_ai').addEventListener('click', function() {
+        const topic = document.getElementById('ai_topic').value;
+        if (!topic) return Swal.fire('Opps!', 'Isi topiknya dulu bang!', 'warning');
+
+        const btn = this;
+        const spinner = document.getElementById('ai_spinner');
+        const btnText = document.getElementById('ai_text');
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.innerText = 'AI Sedang Menulis...';
+
+        $.ajax({
+            url: 'ajax-generate-ai.php',
+            type: 'POST',
+            data: {
+                topic: topic
+            },
+            success: function(response) {
+                // LIHAT DI SINI: Cek respon asli di Console F12
+                console.log("Respon dari AI:", response);
+
+                try {
+                    // Jika response sudah objek, tidak perlu parse lagi
+                    const res = (typeof response === 'object') ? response : JSON.parse(response);
+
+                    if (res.error) {
+                        Swal.fire('Error', res.error, 'error');
+                    } else {
+                        document.getElementById('post_title').value = res.judul;
+                        $('#post_content').summernote('code', res.konten);
+                        document.getElementById('meta_desc').value = res.meta_desc;
+                        document.getElementById('keyword').value = res.keywords;
+
+                        Swal.fire('Berhasil!', 'Artikel sudah siap, silakan diperiksa.', 'success');
+                    }
+                } catch (e) {
+                    console.error("Gagal membaca JSON:", e);
+                    Swal.fire('Format Error', 'Google ngasih jawaban tapi formatnya berantakan. Coba klik lagi bang.', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", error);
+                Swal.fire('Koneksi Gagal', 'Server hosting abang gak kuat nungguin AI nulis.', 'error');
+            },
+            complete: function() {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                btnText.innerText = 'BUAT SEKARANG';
+            }
+        });
+    });
+</script>
 <?php include 'footer.php'; ?>
