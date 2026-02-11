@@ -3,59 +3,80 @@ include '../includes/db.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// 1. CEK LOGIN
 if (!isset($_SESSION['admin_logged_in'])) {
-    die("Akses ditolak");
+    die(json_encode(['error' => 'Akses ditolak. Silakan login ulang.']));
 }
 
 $topic = $_POST['topic'] ?? '';
 if (empty($topic)) {
-    die(json_encode(['error' => 'Topik kosong']));
+    die(json_encode(['error' => 'Isi topiknya dulu bang!']));
 }
 
 $apiKey = GEMINI_API_KEY;
-// Gunakan endpoint v1beta dengan parameter tambahan
+// End-point resmi untuk generate konten
 $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
-// Prompt lebih tegas
-$prompt = "Buat artikel SEO website 'MGL Sticker Jakarta'. Topik: $topic. Judul, Konten (HTML h2, p, li), Meta Desc (160 char), Keywords (5 kata).";
+// PROMPT: Instruksi super ketat biar Google gak ngaco
+$prompt = "Buatkan artikel SEO Bahasa Indonesia untuk website 'MGL Sticker'. 
+Topik: $topic. 
+Output WAJIB JSON murni tanpa markdown, tanpa teks lain. 
+Format JSON: {
+  \"judul\": \"Judul Artikel\",
+  \"konten\": \"Isi minimal 400 kata dengan HTML h2, p, li\",
+  \"meta_desc\": \"Ringkasan 160 karakter\",
+  \"keywords\": \"5 kata kunci\"
+}";
 
-// Data dengan instruksi format JSON murni
 $data = [
-    "contents" => [["parts" => [["text" => $prompt]]]],
-    "generationConfig" => [
-        "response_mime_type" => "application/json", // JURUS BIAR HASILNYA BUKAN TEXT TAPI JSON
+    "contents" => [
+        ["parts" => [["text" => $prompt]]]
     ]
 ];
 
+// PROSES CURL
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); // Abaikan SSL error di hosting
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Kasih waktu 1 menit (karena nulis artikel butuh waktu)
+curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 
 $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $err = curl_error($ch);
 curl_close($ch);
 
-// 1. Cek kalau server hosting matiin cURL
+// 2. CEK KONEKSI
 if ($err) {
-    die(json_encode(['error' => 'Koneksi Server Hosting Error (cURL): ' . $err]));
+    die(json_encode(['error' => 'Gagal kontak Google: ' . $err]));
 }
 
-// 2. Cek kalau API Key salah atau Limit
-if ($http_code !== 200) {
-    die(json_encode(['error' => 'API Google Error Code: ' . $http_code, 'detail' => $response]));
-}
-
+// 3. CEK RESPON GOOGLE
 $result = json_decode($response, true);
 
+if ($http_code !== 200) {
+    $msg = $result['error']['message'] ?? 'Error tidak diketahui';
+    die(json_encode(['error' => 'Google API Error: ' . $msg]));
+}
+
 if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-    // Kirim langsung responnya karena sudah pasti format JSON dari sononya
-    echo $result['candidates'][0]['content']['parts'][0]['text'];
+    $raw_text = $result['candidates'][0]['content']['parts'][0]['text'];
+
+    // MEMBERSIHKAN TANDA ```json atau ``` yang sering bikin error parse
+    $clean_json = str_replace(['```json', '```'], '', $raw_text);
+    $clean_json = trim($clean_json);
+
+    // Pastikan ini adalah JSON valid sebelum dikirim balik ke Javascript
+    $test_json = json_decode($clean_json);
+    if (json_last_error() === JSON_ERROR_NONE) {
+        echo $clean_json; // BERHASIL
+    } else {
+        die(json_encode(['error' => 'AI memberikan format salah, coba klik tombol sekali lagi bang.']));
+    }
 } else {
-    echo json_encode(['error' => 'Format Balasan AI Salah', 'raw' => $result]);
+    die(json_encode(['error' => 'AI tidak memberikan jawaban. Coba topik lain.']));
 }
