@@ -69,7 +69,7 @@ $survey_list = $items->fetchAll();
         }
     </style>
 </head>
-<body "window.print()">
+<body onload="window.print()">
 
     <div class="container-fluid py-3">
         <!-- HEADER -->
