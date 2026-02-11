@@ -1,21 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # 1. KEAMANAN: Mencegah orang melihat isi folder (Directory Listing)
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
     Options -Indexes
-
-    # 2. KEAMANAN: Blokir akses langsung ke file sensitif & folder sistem
     <FilesMatch "\.(sql|env|ini|log|sh|inc|bak)$">
         Order allow,deny
         Deny from all
     </FilesMatch>
-
-    # Blokir akses langsung ke folder includes
     RewriteRule ^includes/ - [F,L]
-    
-    # 3. SEO: Pretty URL (Opsional, jika ingin URL bersih)
-    # Mengubah baca.php?slug=judul menjadi /artikel/judul
-    # RewriteRule ^artikel/([a-zA-Z0-9-]+)$ baca.php?slug=$1 [L]
 </IfModule>
 
 # 4. PERFORMA (Google Core Web Vitals): Browser Caching

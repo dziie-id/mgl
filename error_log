@@ -1,6 +1,0 @@
-[11-Feb-2026 03:24:46 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mgld3919_web.settings' doesn't exist in /home/mgld3919/public_html/includes/db.php:20
-Stack trace:
-#0 /home/mgld3919/public_html/includes/db.php(20): PDO->query()
-#1 /home/mgld3919/public_html/index.php(2): include('/home/mgld3919/...')
-#2 {main}
-  thrown in /home/mgld3919/public_html/includes/db.php on line 20

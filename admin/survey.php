@@ -1,7 +1,12 @@
-<?php 
-include '../includes/db.php'; 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['admin_logged_in'])) { header("Location: login.php"); exit; }
+<?php
+include '../includes/db.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['admin_logged_in'])) {
+    header("Location: login.php");
+    exit;
+}
 
 // --- LOGIKA SIMPAN SEKALIGUS ---
 if (isset($_POST['simpan_survey_lengkap'])) {
@@ -41,7 +46,8 @@ if (isset($_POST['simpan_survey_lengkap'])) {
         }
     }
     $_SESSION['success'] = "Survey berhasil disimpan!";
-    header("Location: survey.php"); exit;
+    header("Location: survey.php");
+    exit;
 }
 
 // Logika Hapus (Sama)
@@ -49,7 +55,8 @@ if (isset($_GET['del'])) {
     $stmt = $pdo->prepare("DELETE FROM surveys WHERE id = ?");
     $stmt->execute([$_GET['del']]);
     $_SESSION['success'] = "Data dihapus!";
-    header("Location: survey.php"); exit;
+    header("Location: survey.php");
+    exit;
 }
 
 include 'header.php';
@@ -84,10 +91,13 @@ $surveys = $pdo->query("SELECT * FROM surveys ORDER BY id DESC")->fetchAll();
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0 align-middle">
-                        <thead class="table small text-center">
+                        <thead class="small text-center">
                             <tr>
                                 <th>Item</th>
-                                <th>P</th><th>L</th><th>T</th><th>Qty</th>
+                                <th>P</th>
+                                <th>L</th>
+                                <th>T</th>
+                                <th>Qty</th>
                                 <th>Upload Foto</th>
                                 <th></th>
                             </tr>
@@ -126,37 +136,39 @@ $surveys = $pdo->query("SELECT * FROM surveys ORDER BY id DESC")->fetchAll();
 </div>
 
 <div class="row g-3">
-    <?php foreach($surveys as $s): ?>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div><h6 class="fw-bold mb-0"><?= $s['nama_klien'] ?></h6><small class="text-muted"><?= $s['lokasi'] ?></small></div>
-                <div>
-                    <a href="survey-view.php?id=<?= $s['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill">Detail</a>
-                    <a href="?del=<?= $s['id'] ?>" class="btn btn-sm btn-link text-danger btn-hapus"><i class="fa-solid fa-trash"></i></a>
+    <?php foreach ($surveys as $s): ?>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-0"><?= $s['nama_klien'] ?></h6><small class="text-muted"><?= $s['lokasi'] ?></small>
+                    </div>
+                    <div>
+                        <a href="survey-view.php?id=<?= $s['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill">Detail</a>
+                        <a href="?del=<?= $s['id'] ?>" class="btn btn-sm btn-link text-danger btn-hapus"><i class="fa-solid fa-trash"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     <?php endforeach; ?>
 </div>
 
 <script>
-document.getElementById('addItem').addEventListener('click', function() {
-    const wrapper = document.getElementById('itemWrapper');
-    const row = document.querySelector('.item-row').cloneNode(true);
-    row.querySelectorAll('input').forEach(i => { 
-        if(i.type === 'number') i.value = 1; 
-        else if(i.type === 'file') i.value = '';
-        else i.value = ''; 
+    document.getElementById('addItem').addEventListener('click', function() {
+        const wrapper = document.getElementById('itemWrapper');
+        const row = document.querySelector('.item-row').cloneNode(true);
+        row.querySelectorAll('input').forEach(i => {
+            if (i.type === 'number') i.value = 1;
+            else if (i.type === 'file') i.value = '';
+            else i.value = '';
+        });
+        wrapper.appendChild(row);
     });
-    wrapper.appendChild(row);
-});
-document.addEventListener('click', function(e) {
-    if (e.target.closest('.btn-remove')) {
-        const rows = document.querySelectorAll('.item-row');
-        if (rows.length > 1) e.target.closest('.item-row').remove();
-    }
-});
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-remove')) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) e.target.closest('.item-row').remove();
+        }
+    });
 </script>
 <?php include 'footer.php'; ?>
