@@ -5,6 +5,13 @@ $random_gal = $stmt->fetchAll();
 $stmt_art = $pdo->query("SELECT * FROM articles ORDER BY RAND() LIMIT 3");
 $random_art = $stmt_art->fetchAll();
 ?>
+<?php
+include 'includes/db.php';
+$stmt = $pdo->query("SELECT * FROM galleries ORDER BY RAND() LIMIT 10");
+$random_gal = $stmt->fetchAll();
+$stmt_art = $pdo->query("SELECT * FROM articles ORDER BY RAND() LIMIT 3");
+$random_art = $stmt_art->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="id">
 

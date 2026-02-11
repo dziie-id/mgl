@@ -1,0 +1,9 @@
+# Ignore all files inside these folders
+/uploads/survey/*
+/uploads/articles/*
+/uploads/gallery/*
+
+# But, keep the .gitkeep files so Git can track the empty directories
+!/uploads/survey/.gitkeep
+!/uploads/articles/.gitkeep
+!/uploads/gallery/.gitkeep

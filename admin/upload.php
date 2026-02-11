@@ -13,9 +13,9 @@
                         <div class="form-text">Nama ini akan menjadi nama file otomatis.</div>
                     </div>
                     <div class="mb-4 text-center p-4 border border-dashed rounded">
-                        <i class="fa-solid fa-images fa-3x text-muted mb-3"></i>
-                        <input type="file" name="fotos[]" multiple class="form-control" accept="image/*" required>
-                        <div class="form-text mt-2">Bisa pilih banyak gambar sekaligus.</div>
+                        <i class="fa-solid fa-file-image fa-3x text-muted mb-3"></i>
+                        <input type="file" name="fotos[]" multiple class="form-control" required>
+                        <div class="form-text mt-2">Pilih file dari Galeri atau File Manager (Format: JPG, PNG, WEBP).</div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-bold">Kategori Layanan:</label>

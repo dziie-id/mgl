@@ -59,7 +59,7 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 2
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-dark text-white fw-bold py-3">Thumbnail & SEO</div>
                 <div class="card-body">
-                    <div id="preview-area" class="mb-3 text-center p-2 border rounded bg-light <?= empty($art['thumbnail']) ? 'd-none' : '' ?>">
+                    <div id="preview-area" class="mb-3 text-center p-2 border rounded <?= empty($art['thumbnail']) ? 'd-none' : '' ?>">
                         <img id="img-chosen" src="" class="img-fluid rounded shadow-sm" style="max-height: 150px;">
                         <input type="hidden" name="selected_image" id="input-chosen">
                     </div>

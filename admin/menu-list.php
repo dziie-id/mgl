@@ -2,7 +2,13 @@
 <a href="upload.php" class="nav-link text-body <?= basename($_SERVER['PHP_SELF']) == 'upload.php' ? 'active' : '' ?>"><i class="fa-solid fa-upload me-2"></i> Upload Gambar</a>
 <a href="artikel.php" class="nav-link text-body"><i class="fa-solid fa-newspaper me-2"></i> Artikel SEO</a>
 <a href="survey.php" class="nav-link text-body"><i class="fa-solid fa-clipboard-check me-2"></i> Survey Lapangan</a>
-<a href="setting-watermark.php" class="nav-link text-body <?= basename($_SERVER['PHP_SELF']) == 'setting-watermark.php' ? 'active' : '' ?>"><i class="fa-solid fa-copyright me-2"></i> Watermark Setting</a>
+<div class="small fw-bold text-muted mt-3 mb-1 ms-3">AKUN SAYA</div>
+<a href="profil.php" class="nav-link text-body <?= basename($_SERVER['PHP_SELF'])=='profil.php'?'active':'' ?>">
+    <i class="fa-solid fa-user-lock me-2"></i> Ganti Password
+</a>
+<?php if ($_SESSION['role'] == 'admin'): ?>
+    <a href="setting-watermark.php" class="nav-link text-body <?= basename($_SERVER['PHP_SELF']) == 'setting-watermark.php' ? 'active' : '' ?>"><i class="fa-solid fa-copyright me-2"></i> Watermark Setting</a>
+<?php endif; ?>
 <?php if ($_SESSION['role'] == 'admin'): ?>
     <a href="user-manager.php" class="nav-link text-body <?= basename($_SERVER['PHP_SELF']) == 'user-manager.php' ? 'active' : '' ?>"><i class="fa-solid fa-users-gear me-2"></i> User Manager</a>
 <?php endif; ?>

@@ -1,11 +1,7 @@
 <?php
-function generate_seo_name($title, $category)
-{
-    $clean_title = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-    $clean_cat = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $category)));
-    return $clean_cat . "-" . $clean_title . "-" . rand(100, 999);
-}
+// admin/functions.php
 
+// 1. Fungsi Resize & Crop (Biar ukuran sama rata)
 function resize_crop_image($source_path, $target_width = 1200, $target_height = 800)
 {
     list($width, $height, $type) = getimagesize($source_path);
@@ -17,26 +13,39 @@ function resize_crop_image($source_path, $target_width = 1200, $target_height = 
         case IMAGETYPE_PNG:
             $source_image = imagecreatefrompng($source_path);
             break;
+        case IMAGETYPE_WEBP:
+            $source_image = imagecreatefromwebp($source_path);
+            break;
         default:
             return false;
     }
 
     $canvas = imagecreatetruecolor($target_width, $target_height);
+
+    // Handle Transparansi Background
     imagealphablending($canvas, false);
     imagesavealpha($canvas, true);
+    $transparent = imagecolorallocatealpha($canvas, 255, 255, 255, 127);
+    imagefilledrectangle($canvas, 0, 0, $target_width, $target_height, $transparent);
 
-    $source_aspect_ratio = $width / $height;
-    $target_aspect_ratio = $target_width / $target_height;
+    // Hitung Rasio Crop Center
+    $source_aspect = $width / $height;
+    $target_aspect = $target_width / $target_height;
 
-    if ($source_aspect_ratio > $target_aspect_ratio) {
+    if ($source_aspect > $target_aspect) {
         $temp_height = $target_height;
-        $temp_width = (int) ($target_height * $source_aspect_ratio);
+        $temp_width = (int) ($target_height * $source_aspect);
     } else {
         $temp_width = $target_width;
-        $temp_height = (int) ($target_width / $source_aspect_ratio);
+        $temp_height = (int) ($target_width / $source_aspect);
     }
 
     $temp_gbr = imagecreatetruecolor($temp_width, $temp_height);
+
+    // Handle transparansi saat resize
+    imagealphablending($temp_gbr, false);
+    imagesavealpha($temp_gbr, true);
+
     imagecopyresampled($temp_gbr, $source_image, 0, 0, 0, 0, $temp_width, $temp_height, $width, $height);
 
     $x0 = ($temp_width - $target_width) / 2;
@@ -50,87 +59,109 @@ function resize_crop_image($source_path, $target_width = 1200, $target_height = 
     return $canvas;
 }
 
+// 2. Fungsi Utama: BAKED WATERMARK
 function apply_baked_watermark($image_resource, $target_path, $settings)
 {
-    $width = imagesx($image_resource);
-    $height = imagesy($image_resource);
+    $img_w = imagesx($image_resource);
+    $img_h = imagesy($image_resource);
 
-    if ($settings['type'] == 'image' && !empty($settings['wm_image'])) {
+    // WAJIB: Aktifkan blending agar opacity (transparansi) berfungsi
+    imagealphablending($image_resource, true);
 
-        $wm_path = __DIR__ . '/../assets/img/' . $settings['wm_image'];
-        if (file_exists($wm_path)) {
-            $watermark = imagecreatefrompng($wm_path);
+    if ($settings['type'] == 'image') {
+        // --- LOGIKA LOGO PNG ---
+        $path_logo = dirname(__DIR__) . '/assets/img/' . $settings['wm_image'];
+        if (file_exists($path_logo) && !empty($settings['wm_image'])) {
+            $logo = imagecreatefrompng($path_logo);
+            $l_w = imagesx($logo);
+            $l_h = imagesy($logo);
+            $new_l_w = $settings['font_size'] ?: 200;
+            $new_l_h = ($l_h / $l_w) * $new_l_w;
+            $resized_logo = imagecreatetruecolor($new_l_w, $new_l_h);
 
-            $wm_w = imagesx($watermark);
-            $wm_h = imagesy($watermark);
-            $new_wm_w = $settings['font_size'];
-            $new_wm_h = ($wm_h / $wm_w) * $new_wm_w;
+            imagealphablending($resized_logo, false);
+            imagesavealpha($resized_logo, true);
+            imagecopyresampled($resized_logo, $logo, 0, 0, 0, 0, $new_l_w, $new_l_h, $l_w, $l_h);
 
-            $resized_wm = imagecreatetruecolor($new_wm_w, $new_wm_h);
-            imagealphablending($resized_wm, false);
-            imagesavealpha($resized_wm, true);
-            imagecopyresampled($resized_wm, $watermark, 0, 0, 0, 0, $new_wm_w, $new_wm_h, $wm_w, $wm_h);
-
-            switch ($settings['position']) {
-                case 'center':
-                    $dest_x = ($width / 2) - ($new_wm_w / 2);
-                    $dest_y = ($height / 2) - ($new_wm_h / 2);
-                    break;
-                case 'top-left':
-                    $dest_x = 30;
-                    $dest_y = 30;
-                    break;
-                case 'top-right':
-                    $dest_x = $width - $new_wm_w - 30;
-                    $dest_y = 30;
-                    break;
-                case 'bottom-left':
-                    $dest_x = 30;
-                    $dest_y = $height - $new_wm_h - 30;
-                    break;
-                default:
-                    $dest_x = $width - $new_wm_w - 30;
-                    $dest_y = $height - $new_wm_h - 30;
-                    break;
+            $pad = 30;
+            if ($settings['position'] == 'center') {
+                $x = ($img_w / 2) - ($new_l_w / 2);
+                $y = ($img_h / 2) - ($new_l_h / 2);
+            } elseif ($settings['position'] == 'top-left') {
+                $x = $pad;
+                $y = $pad;
+            } elseif ($settings['position'] == 'top-right') {
+                $x = $img_w - $new_l_w - $pad;
+                $y = $pad;
+            } elseif ($settings['position'] == 'bottom-left') {
+                $x = $pad;
+                $y = $img_h - $new_l_h - $pad;
+            } else {
+                $x = $img_w - $new_l_w - $pad;
+                $y = $img_h - $new_l_h - $pad;
             }
-            imagecopy($image_resource, $resized_wm, (int)$dest_x, (int)$dest_y, 0, 0, $new_wm_w, $new_wm_h);
 
-            imagedestroy($watermark);
-            imagedestroy($resized_wm);
+            imagecopy($image_resource, $resized_logo, (int)$x, (int)$y, 0, 0, $new_l_w, $new_l_h);
+            imagedestroy($logo);
+            imagedestroy($resized_logo);
         }
     } else {
-
+        // --- LOGIKA TEKS (FIXED OPACITY) ---
         $hex = str_replace("#", "", $settings['color_hex']);
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
-        $gd_opacity = (int)(127 - ($settings['opacity'] * 1.27));
-        $color = imagecolorallocatealpha($image_resource, $r, $g, $b, $gd_opacity);
 
-        $font_path = __DIR__ . '/../assets/fonts/Roboto-Bold.ttf';
+        // GD Alpha: 0 (Solid) s/d 127 (Transparan Total)
+        // Rumus: 127 - (Persentase * 1.27)
+        $user_opacity = (int)$settings['opacity'];
+        $alpha = (int)(127 - ($user_opacity * 1.27));
+
+        // Alokasikan warna dengan Alpha
+        $color = imagecolorallocatealpha($image_resource, $r, $g, $b, $alpha);
+
+        $font_path = dirname(__DIR__) . '/assets/fonts/Roboto-Bold.ttf';
+        $font_size = (int)$settings['font_size'] ?: 40;
+        $angle = (int)$settings['rotate'] ?: 0;
+        $text = $settings['text'] ?: 'Sticker MGL';
+
         if (file_exists($font_path)) {
-            $text_box = imagettfbbox($settings['font_size'], $settings['rotate'], $font_path, $settings['text']);
-            $text_width = abs($text_box[4] - $text_box[0]);
-            $text_height = abs($text_box[5] - $text_box[1]);
+            $box = imagettfbbox($font_size, $angle, $font_path, $text);
+            $text_w = abs($box[4] - $box[0]);
+            $text_h = abs($box[5] - $box[1]);
+
+            $pad = 50;
             switch ($settings['position']) {
                 case 'center':
-                    $x = ($width / 2) - ($text_width / 2);
-                    $y = ($height / 2) + ($text_height / 2);
+                    $x = ($img_w / 2) - ($text_w / 2);
+                    $y = ($img_h / 2) + ($text_h / 2);
+                    break;
+                case 'top-left':
+                    $x = $pad;
+                    $y = $pad + $text_h;
+                    break;
+                case 'top-right':
+                    $x = $img_w - $text_w - $pad;
+                    $y = $pad + $text_h;
+                    break;
+                case 'bottom-left':
+                    $x = $pad;
+                    $y = $img_h - $pad;
                     break;
                 case 'bottom-right':
-                    $x = $width - $text_width - 30;
-                    $y = $height - 30;
+                    $x = $img_w - $text_w - $pad;
+                    $y = $img_h - $pad;
                     break;
                 default:
-                    $x = 30;
-                    $y = 50;
+                    $x = ($img_w / 2) - ($text_w / 2);
+                    $y = ($img_h / 2) + ($text_h / 2);
                     break;
             }
-            imagettftext($image_resource, $settings['font_size'], $settings['rotate'], (int)$x, (int)$y, $color, $font_path, $settings['text']);
+            imagettftext($image_resource, $font_size, $angle, (int)$x, (int)$y, $color, $font_path, $text);
         }
     }
 
-    $save = imagewebp($image_resource, $target_path, 80);
+    $res = imagewebp($image_resource, $target_path, 80);
     imagedestroy($image_resource);
-    return $save;
+    return $res;
 }
