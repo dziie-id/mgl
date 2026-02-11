@@ -118,7 +118,7 @@ $surveys = $pdo->query("SELECT * FROM surveys ORDER BY id DESC")->fetchAll();
                     </table>
                 </div>
             </div>
-            <div class="card-footer text-end bg-white">
+            <div class="card-footer text-end">
                 <button type="submit" name="simpan_survey_lengkap" class="btn btn-primary px-5 shadow">SIMPAN SEMUA</button>
             </div>
         </div>
