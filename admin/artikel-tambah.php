@@ -34,40 +34,39 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 3
 ?>
 
 <style>
-    /* FIX SUMMERNOTE DARK MODE - BIAR TEKS KELIHATAN */
-    [data-bs-theme="dark"] .note-editor { background-color: #1a1a1a !important; border-color: #333 !important; }
-    [data-bs-theme="dark"] .note-editable { background-color: #1a1a1a !important; color: #ffffff !important; }
-    [data-bs-theme="dark"] .note-toolbar { background-color: #222 !important; border-bottom: 1px solid #333 !important; }
-    [data-bs-theme="dark"] .note-btn { background-color: #333 !important; border-color: #444 !important; color: white !important; }
-    [data-bs-theme="dark"] .note-resizebar { background-color: #222 !important; }
+    /* FIX SUMMERNOTE DARK MODE - KONTRAS TINGGI */
+    [data-bs-theme="dark"] .note-editor { background-color: #121212 !important; border-color: #333 !important; }
+    [data-bs-theme="dark"] .note-editable { background-color: #121212 !important; color: #ffffff !important; }
+    [data-bs-theme="dark"] .note-placeholder { color: #555 !important; }
+    [data-bs-theme="dark"] .note-toolbar { background-color: #1a1a1a !important; border-bottom: 1px solid #333 !important; }
+    [data-bs-theme="dark"] .note-btn { background-color: #222 !important; border-color: #444 !important; color: #fff !important; }
+    [data-bs-theme="dark"] .note-dropdown-menu { background-color: #222 !important; color: #fff !important; border: 1px solid #444; }
+    [data-bs-theme="dark"] .note-dropdown-item:hover { background-color: #333 !important; color: #fff !important; }
     
-    /* GABUNGAN STYLE BARU */
-    .img-picker-box { transition: 0.2s; border: 2px solid transparent; border-radius: 8px; cursor: pointer; }
-    .img-picker-box:hover { border-color: var(--primary); transform: scale(1.02); }
-    .img-selected { border-color: var(--primary) !important; background: rgba(0, 102, 255, 0.1); }
+    /* STYLE PICKER */
+    .img-picker-box { transition: 0.2s; border: 2px solid transparent; border-radius: 8px; cursor: pointer; height: 100px; overflow: hidden; }
+    .img-picker-box:hover { border-color: var(--primary); transform: scale(1.05); }
 </style>
 
 <div class="row mb-4">
     <div class="col">
         <h4 class="fw-bold text-primary mb-0"><i class="fa-solid fa-pen-nib me-2"></i>Tulis Artikel Baru</h4>
-        <p class="text-muted small">Buat konten manual untuk meningkatkan SEO website Anda.</p>
     </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="formArtikel">
     <div class="row g-4">
-        <!-- KIRI: ISI KONTEN -->
+        <!-- KIRI: KONTEN UTAMA -->
         <div class="col-md-8">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
                     <div class="mb-4">
                         <label class="fw-bold mb-2">Judul Artikel <span class="text-danger">*</span></label>
-                        <input type="text" name="judul" id="post_title" class="form-control form-control-lg" placeholder="Masukkan judul..." required>
+                        <input type="text" name="judul" id="post_title" class="form-control form-control-lg border-primary" placeholder="Ketik judul artikel..." required autocomplete="off">
                     </div>
                     
                     <div class="mb-0">
                         <label class="fw-bold mb-2">Isi Artikel</label>
-                        <!-- Textarea summernote otomatis kena CSS Fix di atas -->
                         <textarea name="konten" class="summernote" id="post_content"></textarea>
                     </div>
                 </div>
@@ -77,44 +76,43 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 3
         <!-- KANAN: SEO & THUMBNAIL -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-dark text-white fw-bold py-3">Thumbnail & SEO</div>
+                <div class="card-header bg-dark text-white fw-bold py-3 small">THUMBNAIL & SEO</div>
                 <div class="card-body p-4">
                     
-                    <!-- Preview Thumbnail -->
+                    <!-- Area Preview Gambar -->
                     <div id="preview-area" class="mb-3 text-center p-2 border rounded bg-dark bg-opacity-25 d-none">
-                        <label class="x-small d-block mb-2 fw-bold text-primary">GAMBAR TERPILIH</label>
+                        <label class="x-small d-block mb-2 fw-bold text-primary">THUMBNAIL AKTIF</label>
                         <img id="img-chosen" src="" class="img-fluid rounded shadow-sm" style="max-height: 180px;">
                         <input type="hidden" name="selected_image" id="input-chosen">
-                        <button type="button" class="btn btn-sm btn-danger mt-2 w-100" id="btn-remove-img">Hapus Gambar</button>
+                        <button type="button" class="btn btn-sm btn-link text-danger mt-2 text-decoration-none fw-bold" id="btn-remove-img">Ganti Gambar</button>
                     </div>
 
                     <div id="upload-instruction" class="d-grid gap-2 mb-4">
                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#galleryModal">
                             <i class="fa-solid fa-images me-2"></i>Pilih dari Galeri
                         </button>
-                        <div class="text-center small text-muted my-1">Atau Upload Baru:</div>
+                        <div class="text-center small text-muted my-1">Atau Upload File:</div>
                         <input type="file" name="thumbnail" class="form-control form-control-sm" accept="image/*">
                     </div>
 
-                    <hr class="my-4 opacity-25">
+                    <hr class="opacity-25 my-4">
 
-                    <!-- SEO SECTION -->
+                    <!-- SEO OTOMATIS -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="small fw-bold">Meta Description</label>
-                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="autoMeta()">Auto</button>
+                            <label class="small fw-bold text-primary">Meta Description (SEO)</label>
+                            <span class="badge bg-secondary" id="meta-count">0</span>
                         </div>
-                        <textarea name="meta_desc" id="meta_desc" class="form-control small" rows="4" placeholder="Ringkasan singkat..."></textarea>
+                        <textarea name="meta_desc" id="meta_desc" class="form-control small" rows="4" placeholder="Ringkasan otomatis dari isi artikel..."></textarea>
                     </div>
 
                     <div class="mb-4">
-                        <label class="small fw-bold mb-1">Keywords (SEO Kata Kunci)</label>
-                        <textarea name="keyword" id="keyword" class="form-control" rows="3" placeholder="Contoh: sticker mobil, branding bus, wrapping jakarta, cutting sticker..."></textarea>
-                        <div class="form-text" style="font-size: 10px;">Gunakan tanda koma (,) untuk memisahkan kata kunci.</div>
+                        <label class="small fw-bold text-primary mb-1">Keywords (Tags)</label>
+                        <textarea name="keyword" id="keyword" class="form-control small" rows="3" placeholder="Keyword otomatis dari judul..."></textarea>
                     </div>
 
                     <button type="submit" name="simpan_artikel" class="btn btn-primary w-100 shadow py-3 fw-bold">
-                        <i class="fa-solid fa-paper-plane me-2"></i> TERBITKAN SEKARANG
+                        <i class="fa-solid fa-paper-plane me-2"></i> TERBITKAN ARTIKEL
                     </button>
                 </div>
             </div>
@@ -122,22 +120,22 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 3
     </div>
 </form>
 
-<!-- MODAL MEDIA PICKER -->
+<!-- MODAL GALLERY -->
 <div class="modal fade" id="galleryModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold">Pilih Gambar dari Portofolio</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content border-0 shadow-lg bg-dark">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold">Klik Gambar untuk Memilih</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="btnCloseModal"></button>
             </div>
-            <div class="modal-body bg-dark p-3" style="max-height: 500px; overflow-y: auto;">
+            <div class="modal-body p-3" style="max-height: 500px; overflow-y: auto;">
                 <div class="row g-2">
                     <?php foreach($gallery as $g): ?>
                     <div class="col-4 col-md-3">
-                        <div class="img-picker-box p-1">
+                        <div class="img-picker-box">
                             <img src="../uploads/gallery/<?= $g['file_name'] ?>" 
-                                 class="img-fluid rounded shadow-sm img-click" 
-                                 style="height: 110px; width: 100%; object-fit: cover;"
+                                 class="img-fluid w-100 h-100 img-click" 
+                                 style="object-fit: cover;"
                                  data-filename="<?= $g['file_name'] ?>">
                         </div>
                     </div>
@@ -149,36 +147,72 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 3
 </div>
 
 <script>
-// 1. Logic Media Picker (Pilih Gambar)
+// --- JURUS ANTI BLOCK MODAL ---
+function cleanupModal() {
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = 'auto';
+    document.body.style.paddingRight = '0';
+    const backdrops = document.getElementsByClassName('modal-backdrop');
+    while (backdrops[0]) {
+        backdrops[0].parentNode.removeChild(backdrops[0]);
+    }
+}
+
+// 1. Logic Media Picker
 document.querySelectorAll('.img-click').forEach(img => {
     img.addEventListener('click', function() {
         const filename = this.getAttribute('data-filename');
-        
-        // Tampilkan area preview
         document.getElementById('img-chosen').src = "../uploads/gallery/" + filename;
         document.getElementById('input-chosen').value = filename;
         document.getElementById('preview-area').classList.remove('d-none');
         document.getElementById('upload-instruction').classList.add('d-none');
 
-        // Tutup Modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('galleryModal'));
-        modal.hide();
+        // Tutup modal paksa
+        const modalEl = document.getElementById('galleryModal');
+        const modalIns = bootstrap.Modal.getInstance(modalEl);
+        if (modalIns) modalIns.hide();
+        setTimeout(cleanupModal, 400); 
     });
 });
 
-// 2. Logic Hapus Pilihan Gambar
 document.getElementById('btn-remove-img').addEventListener('click', function() {
     document.getElementById('preview-area').classList.add('d-none');
     document.getElementById('upload-instruction').classList.remove('d-none');
     document.getElementById('input-chosen').value = '';
 });
 
-// 3. Logic Auto Generate Meta
-function autoMeta() {
-    const content = $('#post_content').summernote('code');
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
-    document.getElementById('meta_desc').value = plainText.substring(0, 160);
-}
+// --- JURUS AUTO SEO GACOR ---
+
+// A. Keyword dari Judul (Live)
+document.getElementById('post_title').addEventListener('input', function() {
+    const val = this.value;
+    const ignore = ['dan', 'di', 'ke', 'dari', 'yang', 'untuk', 'pada', 'dengan', 'ini', 'itu', 'adalah'];
+    
+    let keywords = val.toLowerCase()
+        .replace(/[^a-zA-Z0-9 ]/g, '')
+        .split(' ')
+        .filter(word => word.length > 2 && !ignore.includes(word));
+    
+    // Tambahkan branding kita sebagai keyword wajib
+    keywords.push('sticker mgl', 'mgl sticker jakarta');
+    
+    document.getElementById('keyword').value = [...new Set(keywords)].join(', ');
+});
+
+// B. Meta Desc dari Konten (On Change / On Input di Editor)
+$('.summernote').on('summernote.change', function() {
+    const content = $(this).summernote('code');
+    const plainText = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const snippet = plainText.substring(0, 160);
+    
+    document.getElementById('meta_desc').value = snippet;
+    document.getElementById('meta-count').innerText = snippet.length;
+});
+
+// Cek ulang saat modal tertutup (biar gak ngeblock)
+$('#galleryModal').on('hidden.bs.modal', function () {
+    cleanupModal();
+});
 </script>
 
 <?php include 'footer.php'; ?>
