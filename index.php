@@ -1,11 +1,9 @@
 <?php 
 include 'includes/db.php'; 
 
-// 1. Ambil 10 Gambar Secara Acak untuk Galeri 5x2
 $stmt = $pdo->query("SELECT * FROM galleries ORDER BY RAND() LIMIT 10");
 $random_gal = $stmt->fetchAll();
 
-// 2. Ambil 3 Artikel Secara Acak
 $stmt_art = $pdo->query("SELECT * FROM articles ORDER BY RAND() LIMIT 3");
 $random_art = $stmt_art->fetchAll();
 ?>
@@ -16,21 +14,13 @@ $random_art = $stmt_art->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sticker MGL | Spesialis Branding Mobil & Sticker Premium</title>
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>assets/img/favicon.png">
-    
-    <!-- Meta SEO -->
     <meta name="description" content="Ahlinya jasa branding mobil, wrapping full body, dan pasang sticker kaca film di Tangerang. Menggunakan bahan premium (Oracal/3M) presisi & bergaransi.">
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <!-- CSS Plugins -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style-front.css">
-
-    <!-- Schema Markup (SEO Lokal) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -54,7 +44,6 @@ $random_art = $stmt_art->fetchAll();
         
         .navbar { background: rgba(11, 11, 11, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid #222; }
         
-        /* HERO SECTION TUNING */
         .hero { 
             min-height: 100vh; 
             background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('/uploads/gallery/balut-mobil-wrapping-car-sticker-mgl-jakarta-1-1770834169.webp?auto=format&fit=crop&w=1920&q=80'); 
@@ -66,7 +55,6 @@ $random_art = $stmt_art->fetchAll();
         .hero h1 { font-size: 4.5rem; font-weight: 800; line-height: 1; margin-bottom: 20px; }
         .hero p { color: #eee; max-width: 650px; font-size: 1.1rem; margin-bottom: 35px; }
 
-        /* FIX TOMBOL HERO MOBILE */
         .hero-btns { display: flex; gap: 15px; }
         .hero-btns .btn { padding: 16px 35px; font-weight: 700; border-radius: 50px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
 
@@ -79,7 +67,6 @@ $random_art = $stmt_art->fetchAll();
             .hero-btns .btn { width: 100%; }
         }
 
-        /* Portfolio & Spacing */
         .section-padding { padding: 80px 0; }
         .portfolio-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
         .portfolio-item { position: relative; overflow: hidden; height: 240px; border-radius: 12px; border: 1px solid #222; }
@@ -94,7 +81,6 @@ $random_art = $stmt_art->fetchAll();
 
 <?php include 'includes/navbar.php'; ?>
 
-<!-- HERO -->
 <section class="hero">
     <div class="container">
         <div data-aos="fade-right">
@@ -102,7 +88,6 @@ $random_art = $stmt_art->fetchAll();
             <h1>SENI BRANDING<br><span class="text-primary">KENDARAAN</span> ANDA.</h1>
             <p>Ubah kendaraan operasional atau pribadi Anda menjadi media promosi berjalan yang elegan. Kami menjamin hasil presisi dengan material kelas dunia.</p>
             
-            <!-- TOMBOL YANG SUDAH DIREVISI -->
             <div class="hero-btns mt-4">
                 <a href="<?= BASE_URL ?>galeri.php" class="btn btn-primary shadow-lg">
                     <i class="fa-solid fa-images me-2"></i> Lihat Hasil Kerja
@@ -115,7 +100,6 @@ $random_art = $stmt_art->fetchAll();
     </div>
 </section>
 
-<!-- LAYANAN (Keahlian Kami) -->
 <section class="section-padding bg-black" id="layanan">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
@@ -148,7 +132,6 @@ $random_art = $stmt_art->fetchAll();
     </div>
 </section>
 
-<!-- PORTOFOLIO 5X2 -->
 <section class="section-padding">
     <div class="container mb-5 text-center" data-aos="fade-up">
         <h6 class="text-primary fw-bold text-uppercase" style="letter-spacing: 3px;">Hasil Kerja Nyata</h6>
@@ -168,7 +151,6 @@ $random_art = $stmt_art->fetchAll();
     </div>
 </section>
 
-<!-- ARTIKEL (RANDOM) -->
 <section class="section-padding bg-black">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
@@ -196,7 +178,6 @@ $random_art = $stmt_art->fetchAll();
     </div>
 </section>
 
-<!-- FOOTER (Identik Index) -->
 <footer class="py-5 bg-black border-top border-secondary border-opacity-25 mt-5">
     <div class="container text-center py-4">
         <h3 class="fw-bold mb-4">STICKER<span class="text-primary">MGL</span></h3>
@@ -207,7 +188,6 @@ $random_art = $stmt_art->fetchAll();
     </div>
 </footer>
 
-<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
