@@ -94,7 +94,7 @@ $random_art = $stmt_art->fetchAll();
 
         .hero {
             height: 90vh;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9)), url('https://mglstiker.com/uploads/gallery/branding-bus-sticker-mgl-jakarta-2-1770834022.webp?auto=format&fit=crop&w=1920&q=80');
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9)), url('/uploads/gallery/branding-bus-sticker-mgl-jakarta-2-1770834022.webp?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
             display: flex;
