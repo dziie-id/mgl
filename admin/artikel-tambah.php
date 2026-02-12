@@ -1,22 +1,18 @@
-<?php
+<?php 
 include '../includes/db.php';
 include 'functions.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: login.php");
-    exit;
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (!isset($_SESSION['admin_logged_in'])) { header("Location: login.php"); exit; }
 
+// --- LOGIKA SIMPAN ARTIKEL ---
 if (isset($_POST['simpan_artikel'])) {
     $judul = $_POST['judul'];
     $slug  = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $judul)));
     $konten = $_POST['konten'];
     $meta_desc = $_POST['meta_desc'];
     $keyword = $_POST['keyword'];
-    $thumb_name = $_POST['selected_image'];
-
+    $thumb_name = $_POST['selected_image']; 
+    
     if (!empty($_FILES['thumbnail']['name'])) {
         $tmp_name = $_FILES['thumbnail']['tmp_name'];
         $thumb_name = "blog-" . time() . ".webp";
@@ -28,84 +24,97 @@ if (isset($_POST['simpan_artikel'])) {
 
     $stmt = $pdo->prepare("INSERT INTO articles (judul, slug, konten, thumbnail, meta_desc, keyword) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$judul, $slug, $konten, $thumb_name, $meta_desc, $keyword]);
-    header("Location: artikel.php");
+    
     $_SESSION['success'] = "Artikel berhasil diterbitkan!";
-    exit;
+    header("Location: artikel.php"); exit;
 }
 
-include 'header.php';
-$gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 24")->fetchAll();
+include 'header.php'; 
+$gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 32")->fetchAll();
 ?>
 
-<form method="POST" enctype="multipart/form-data">
-    <div class="card border-primary shadow-sm mb-4">
-        <div class="card-body bg-primary bg-opacity-10 py-4">
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary text-white rounded-circle p-2 me-3">
-                    <i class="fa-solid fa-robot fa-xl"></i>
-                </div>
-                <div>
-                    <h5 class="mb-0 fw-bold text-primary">Tulis Artikel dengan AI</h5>
-                    <small class="text-muted">Masukkan topik atau kata kunci, AI akan menuliskan semuanya untuk Anda.</small>
-                </div>
-            </div>
+<style>
+    /* FIX SUMMERNOTE DARK MODE - BIAR TEKS KELIHATAN */
+    [data-bs-theme="dark"] .note-editor { background-color: #1a1a1a !important; border-color: #333 !important; }
+    [data-bs-theme="dark"] .note-editable { background-color: #1a1a1a !important; color: #ffffff !important; }
+    [data-bs-theme="dark"] .note-toolbar { background-color: #222 !important; border-bottom: 1px solid #333 !important; }
+    [data-bs-theme="dark"] .note-btn { background-color: #333 !important; border-color: #444 !important; color: white !important; }
+    [data-bs-theme="dark"] .note-resizebar { background-color: #222 !important; }
+    
+    /* GABUNGAN STYLE BARU */
+    .img-picker-box { transition: 0.2s; border: 2px solid transparent; border-radius: 8px; cursor: pointer; }
+    .img-picker-box:hover { border-color: var(--primary); transform: scale(1.02); }
+    .img-selected { border-color: var(--primary) !important; background: rgba(0, 102, 255, 0.1); }
+</style>
 
-            <div class="input-group">
-                <input type="text" id="ai_topic" class="form-control form-control-lg border-primary" placeholder="Contoh: Manfaat pasang sticker sandblast untuk kaca kantor">
-                <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" id="btn_generate_ai">
-                    <span id="ai_spinner" class="spinner-border spinner-border-sm d-none me-2"></span>
-                    <span id="ai_text">BUAT SEKARANG</span>
-                </button>
-            </div>
-        </div>
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="fw-bold text-primary mb-0"><i class="fa-solid fa-pen-nib me-2"></i>Tulis Artikel Baru</h4>
+        <p class="text-muted small">Buat konten manual untuk meningkatkan SEO website Anda.</p>
     </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
     <div class="row g-4">
+        <!-- KIRI: ISI KONTEN -->
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
                     <div class="mb-4">
                         <label class="fw-bold mb-2">Judul Artikel <span class="text-danger">*</span></label>
-                        <input type="text" name="judul" id="post_title" class="form-control form-control-lg border-primary shadow-sm" placeholder="Masukkan judul artikel yang menarik..." required>
+                        <input type="text" name="judul" id="post_title" class="form-control form-control-lg" placeholder="Masukkan judul..." required>
                     </div>
-
+                    
                     <div class="mb-0">
-                        <label class="fw-bold mb-2">Isi Artikel / Konten</label>
-                        <textarea name="konten" id="post_content" class="summernote"></textarea>
+                        <label class="fw-bold mb-2">Isi Artikel</label>
+                        <!-- Textarea summernote otomatis kena CSS Fix di atas -->
+                        <textarea name="konten" class="summernote" id="post_content"></textarea>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- KANAN: SEO & THUMBNAIL -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-dark text-white fw-bold py-3">Thumbnail & SEO</div>
-                <div class="card-body">
-                    <div id="preview-area" class="mb-3 text-center p-2 border rounded <?= empty($art['thumbnail']) ? 'd-none' : '' ?>">
-                        <img id="img-chosen" src="" class="img-fluid rounded shadow-sm" style="max-height: 150px;">
+                <div class="card-body p-4">
+                    
+                    <!-- Preview Thumbnail -->
+                    <div id="preview-area" class="mb-3 text-center p-2 border rounded bg-dark bg-opacity-25 d-none">
+                        <label class="x-small d-block mb-2 fw-bold text-primary">GAMBAR TERPILIH</label>
+                        <img id="img-chosen" src="" class="img-fluid rounded shadow-sm" style="max-height: 180px;">
                         <input type="hidden" name="selected_image" id="input-chosen">
+                        <button type="button" class="btn btn-sm btn-danger mt-2 w-100" id="btn-remove-img">Hapus Gambar</button>
                     </div>
 
-                    <label class="small fw-bold mb-2">Pilih Thumbnail</label>
-                    <div class="d-grid gap-2 mb-3">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#galleryModal">
-                            <i class="fa-solid fa-images me-1"></i> Pilih dari Galeri
+                    <div id="upload-instruction" class="d-grid gap-2 mb-4">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#galleryModal">
+                            <i class="fa-solid fa-images me-2"></i>Pilih dari Galeri
                         </button>
+                        <div class="text-center small text-muted my-1">Atau Upload Baru:</div>
                         <input type="file" name="thumbnail" class="form-control form-control-sm" accept="image/*">
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-4 opacity-25">
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="small fw-bold">Meta Description</label>
-                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" onclick="generateSEO()">Auto-Generate</button>
+                    <!-- SEO SECTION -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="small fw-bold">Meta Description</label>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="autoMeta()">Auto</button>
+                        </div>
+                        <textarea name="meta_desc" id="meta_desc" class="form-control small" rows="4" placeholder="Ringkasan singkat..."></textarea>
                     </div>
-                    <textarea name="meta_desc" id="meta_desc" class="form-control mb-3 small" rows="4" placeholder="Ringkasan untuk Google..."></textarea>
 
-                    <label class="small fw-bold mb-2">Keywords (Pisahkan dengan koma)</label>
-                    <input type="text" name="keyword" id="keyword" class="form-control mb-4" placeholder="sticker, branding, mobil...">
+                    <div class="mb-4">
+                        <label class="small fw-bold mb-1">Keywords (SEO Kata Kunci)</label>
+                        <textarea name="keyword" id="keyword" class="form-control" rows="3" placeholder="Contoh: sticker mobil, branding bus, wrapping jakarta, cutting sticker..."></textarea>
+                        <div class="form-text" style="font-size: 10px;">Gunakan tanda koma (,) untuk memisahkan kata kunci.</div>
+                    </div>
 
-                    <button type="submit" name="simpan_artikel" class="btn btn-primary w-100 shadow py-2 fw-bold">
-                        <i class="fa-solid fa-paper-plane me-1"></i> TERBITKAN ARTIKEL
+                    <button type="submit" name="simpan_artikel" class="btn btn-primary w-100 shadow py-3 fw-bold">
+                        <i class="fa-solid fa-paper-plane me-2"></i> TERBITKAN SEKARANG
                     </button>
                 </div>
             </div>
@@ -113,164 +122,63 @@ $gallery = $pdo->query("SELECT file_name FROM galleries ORDER BY id DESC LIMIT 2
     </div>
 </form>
 
+<!-- MODAL MEDIA PICKER -->
 <div class="modal fade" id="galleryModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">Pilih Gambar Galeri</h5>
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold">Pilih Gambar dari Portofolio</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body bg-body-tertiary" style="max-height: 400px; overflow-y: auto;">
+            <div class="modal-body bg-dark p-3" style="max-height: 500px; overflow-y: auto;">
                 <div class="row g-2">
-                    <?php foreach ($gallery as $g): ?>
-                        <div class="col-4 col-md-3">
-                            <div class="card h-100 border-0 shadow-sm cursor-pointer img-picker-box">
-                                <img src="../uploads/gallery/<?= $g['file_name'] ?>"
-                                    class="card-img img-picker"
-                                    style="height: 100px; object-fit: cover; cursor: pointer;"
-                                    data-filename="<?= $g['file_name'] ?>">
-                            </div>
+                    <?php foreach($gallery as $g): ?>
+                    <div class="col-4 col-md-3">
+                        <div class="img-picker-box p-1">
+                            <img src="../uploads/gallery/<?= $g['file_name'] ?>" 
+                                 class="img-fluid rounded shadow-sm img-click" 
+                                 style="height: 110px; width: 100%; object-fit: cover;"
+                                 data-filename="<?= $g['file_name'] ?>">
                         </div>
+                    </div>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <div class="modal-footer small text-muted">Klik pada gambar untuk memilih</div>
         </div>
     </div>
 </div>
 
 <script>
-    function generateSEO() {
-        const title = document.getElementById('post_title').value;
-        const content = $('#post_content').summernote('code');
-        const plainText = content.replace(/<[^>]*>/g, '');
-        const snippet = plainText.trim().substring(0, 160);
+// 1. Logic Media Picker (Pilih Gambar)
+document.querySelectorAll('.img-click').forEach(img => {
+    img.addEventListener('click', function() {
+        const filename = this.getAttribute('data-filename');
+        
+        // Tampilkan area preview
+        document.getElementById('img-chosen').src = "../uploads/gallery/" + filename;
+        document.getElementById('input-chosen').value = filename;
+        document.getElementById('preview-area').classList.remove('d-none');
+        document.getElementById('upload-instruction').classList.add('d-none');
 
-        document.getElementById('meta_desc').value = snippet;
-        document.getElementById('keyword').value = title.toLowerCase().split(' ').join(', ');
-    }
-
-    document.querySelectorAll('.img-picker').forEach(img => {
-        img.addEventListener('click', function() {
-            const filename = this.getAttribute('data-filename');
-            const previewArea = document.getElementById('preview-area');
-            const imgChosen = document.getElementById('img-chosen');
-            const inputChosen = document.getElementById('input-chosen');
-            imgChosen.src = "../uploads/gallery/" + filename;
-            inputChosen.value = filename;
-            previewArea.classList.remove('d-none');
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('galleryModal'));
-            modal.hide();
-        });
+        // Tutup Modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('galleryModal'));
+        modal.hide();
     });
+});
+
+// 2. Logic Hapus Pilihan Gambar
+document.getElementById('btn-remove-img').addEventListener('click', function() {
+    document.getElementById('preview-area').classList.add('d-none');
+    document.getElementById('upload-instruction').classList.remove('d-none');
+    document.getElementById('input-chosen').value = '';
+});
+
+// 3. Logic Auto Generate Meta
+function autoMeta() {
+    const content = $('#post_content').summernote('code');
+    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    document.getElementById('meta_desc').value = plainText.substring(0, 160);
+}
 </script>
-<script>
-    document.getElementById('btn_generate_ai').addEventListener('click', function() {
-        const topic = document.getElementById('ai_topic').value;
-        if (!topic) return Swal.fire('Opps!', 'Isi topiknya dulu bang!', 'warning');
 
-        const btn = this;
-        const spinner = document.getElementById('ai_spinner');
-        const btnText = document.getElementById('ai_text');
-
-        // Loading State
-        btn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.innerText = 'AI Sedang Menulis...';
-
-        // Kirim permintaan via AJAX
-        $.ajax({
-            url: 'ajax-generate-ai.php',
-            type: 'POST',
-            data: {
-                topic: topic
-            },
-            success: function(response) {
-                try {
-                    const res = JSON.parse(response);
-
-                    // Isi otomatis ke field form
-                    document.getElementById('post_title').value = res.judul;
-                    $('#post_content').summernote('code', res.konten);
-                    document.getElementById('meta_desc').value = res.meta_desc;
-                    document.getElementById('keyword').value = res.keywords;
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Artikel Selesai!',
-                        text: 'AI sudah selesai menulis. Silakan diperiksa dan jangan lupa pilih gambarnya.',
-                        background: getSwalTheme().bg,
-                        color: getSwalTheme().text
-                    });
-                } catch (e) {
-                    console.log(response);
-                    Swal.fire('Gagal', 'AI sedang error atau kuota habis.', 'error');
-                }
-            },
-            error: function() {
-                Swal.fire('Error', 'Gagal tersambung ke server.', 'error');
-            },
-            complete: function() {
-                btn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.innerText = 'BUAT SEKARANG';
-            }
-        });
-    });
-</script>
-<script>
-    document.getElementById('btn_generate_ai').addEventListener('click', function() {
-        const topic = document.getElementById('ai_topic').value;
-        if (!topic) return Swal.fire('Opps!', 'Isi topiknya dulu bang!', 'warning');
-
-        const btn = this;
-        const spinner = document.getElementById('ai_spinner');
-        const btnText = document.getElementById('ai_text');
-
-        btn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.innerText = 'AI Sedang Menulis...';
-
-        $.ajax({
-            url: 'ajax-generate-ai.php',
-            type: 'POST',
-            data: {
-                topic: topic
-            },
-            success: function(response) {
-                // LIHAT DI SINI: Cek respon asli di Console F12
-                console.log("Respon dari AI:", response);
-
-                try {
-                    // Jika response sudah objek, tidak perlu parse lagi
-                    const res = (typeof response === 'object') ? response : JSON.parse(response);
-
-                    if (res.error) {
-                        Swal.fire('Error', res.error, 'error');
-                    } else {
-                        document.getElementById('post_title').value = res.judul;
-                        $('#post_content').summernote('code', res.konten);
-                        document.getElementById('meta_desc').value = res.meta_desc;
-                        document.getElementById('keyword').value = res.keywords;
-
-                        Swal.fire('Berhasil!', 'Artikel sudah siap, silakan diperiksa.', 'success');
-                    }
-                } catch (e) {
-                    console.error("Gagal membaca JSON:", e);
-                    Swal.fire('Format Error', 'Google ngasih jawaban tapi formatnya berantakan. Coba klik lagi bang.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("AJAX Error:", error);
-                Swal.fire('Koneksi Gagal', 'Server hosting abang gak kuat nungguin AI nulis.', 'error');
-            },
-            complete: function() {
-                btn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.innerText = 'BUAT SEKARANG';
-            }
-        });
-    });
-</script>
 <?php include 'footer.php'; ?>
