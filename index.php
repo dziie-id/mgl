@@ -57,7 +57,7 @@ $random_art = $stmt_art->fetchAll();
         /* HERO SECTION TUNING */
         .hero { 
             min-height: 100vh; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1611310263923-356c9a0980ca?auto=format&fit=crop&w=1920&q=80'); 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('/uploads/gallery/balut-mobil-wrapping-car-sticker-mgl-jakarta-1-1770834169.webp?auto=format&fit=crop&w=1920&q=80'); 
             background-size: cover; background-position: center;
             display: flex; align-items: center;
             padding-top: 80px;
