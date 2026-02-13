@@ -47,4 +47,23 @@ try {
         $stmt_item = $pdo->prepare("INSERT INTO survey_items (survey_id, nama_bagian, p, l, t, qty, foto_item) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt_item->execute([
             $survey_id, 
-            $item['na
+            $item['nama_bagian'], 
+            $item['p'] ?? '-', 
+            $item['l'] ?? '-', 
+            $item['t'] ?? '-', 
+            $item['qty'] ?? 1, 
+            $foto_name
+        ]);
+        $success_items++;
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Survey berhasil disimpan!',
+        'survey_id' => $survey_id,
+        'item_tersimpan' => $success_items
+    ]);
+
+} catch (PDOException $e) {
+    echo json_encode(['status' => 'error', 'message' => 'DB Error: ' . $e->getMessage()]);
+}
