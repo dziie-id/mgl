@@ -10,20 +10,15 @@ if ($method == 'GET') {
 
         $clean_data = [];
         foreach ($data as $item) {
-            // Kita rakit URL-nya dengan teliti
-            $file = $item['file_name'];
-            
-            // Hilangkan spasi jika ada di nama file
-            $file = trim($file);
-            
-            // Cek apakah file benar-benar ada di folder
-            $check_path = "../../uploads/gallery/" . $file;
-            
-            if (file_exists($check_path)) {
-                $item['url_gambar'] = BASE_URL . "uploads/gallery/" . $file;
-                $clean_data[] = $item;
-            }
-        }
+    $file = trim($item['file_name']);
+    $check_path = "../../uploads/gallery/" . $file;
+    
+    if (file_exists($check_path)) {
+        // KITA TULIS MANUAL LINKNYA BIAR GAK SALAH
+        $item['url_gambar'] = "https://mglstiker.com/uploads/gallery/" . $file;
+        $clean_data[] = $item;
+    }
+}
 
         echo json_encode([
             'status' => 'success',
