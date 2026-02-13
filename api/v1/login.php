@@ -27,12 +27,12 @@ if ($admin && password_verify($pass, $admin['password'])) {
     }
 
     echo json_encode([
-        'status' => 'success',
-        'message' => 'Login Berhasil',
-        'api_key' => $token,
-        'user_data' => [
-            'nama' => $admin['nama_lengkap'],
-            'role' => $admin['role']
+    'status' => 'success',
+    'api_key' => $token,
+    'user_data' => [
+        'user_id' => $admin['id'], // TAMBAHKAN INI
+        'nama' => $admin['nama_lengkap'],
+        'role' => $admin['role']
         ]
     ]);
 } else {
