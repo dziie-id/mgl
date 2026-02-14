@@ -101,7 +101,6 @@ $random_art = $stmt_art->fetchAll();
                 font-size: 1rem;
             }
 
-            /* Tombol jadi numpuk di HP biar gak penyok */
             .hero-btns {
                 flex-direction: column;
                 width: 100%;

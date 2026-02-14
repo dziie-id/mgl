@@ -108,7 +108,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?q=80&w=800&auto=format&fit=crop" alt="Branding Mobil">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-8-1770928313.webp" alt="Branding Mobil">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-car-side"></i>
                         </div>
@@ -128,7 +128,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop" alt="Sticker Kaca">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-4-1770928311.webp" alt="Sticker Kaca">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-building"></i>
                         </div>
@@ -148,7 +148,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1589656966895-2f33e7653819?q=80&w=800&auto=format&fit=crop" alt="Cutting Sticker">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-11-1770928314.webp" alt="Cutting Sticker">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-scissors"></i>
                         </div>
@@ -168,7 +168,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1619643380277-2af7f827393d?q=80&w=800&auto=format&fit=crop" alt="Premium Wrapping">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-16-1770928316.webp" alt="Premium Wrapping">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-spray-can"></i>
                         </div>
@@ -188,7 +188,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1626847037657-fd3622613ce3?q=80&w=800&auto=format&fit=crop" alt="Decal Printing">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-17-1770928316.webp" alt="Decal Printing">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-print"></i>
                         </div>
@@ -208,7 +208,7 @@ include 'includes/db.php';
             <div class="col-md-6 col-lg-4">
                 <div class="service-detail-card">
                     <div class="service-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1581092921461-eab62e97a782?q=80&w=800&auto=format&fit=crop" alt="Jasa Pasang">
+                        <img src="https://mglstiker.com/uploads/gallery/branding-mobil-sticker-mgl-jakarta-5-1770928312.webp" alt="Jasa Pasang">
                         <div class="service-icon-float">
                             <i class="fa-solid fa-tools"></i>
                         </div>
