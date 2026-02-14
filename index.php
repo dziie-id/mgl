@@ -209,7 +209,7 @@ $random_art = $stmt_art->fetchAll();
             <?php foreach ($random_gal as $img): ?>
                 <div class="portfolio-item" data-aos="zoom-in">
                     <a href="<?= BASE_URL ?>uploads/gallery/<?= $img['file_name'] ?>" data-fancybox="gallery" data-caption="<?= $img['alt_text'] ?>">
-                        <img src="<?= BASE_URL ?>uploads/gallery/<?= $img['file_name'] ?>" alt="<?= $img['alt_text'] ?>" loading="lazy">
+                        <img src="<?= $path ?>" alt="<?= htmlspecialchars($img['alt_text']) ?> - MGL Sticker Jakarta" loading="lazy">
                         <div class="position-absolute inset-0 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 bg-dark bg-opacity-50 transition-all">
                             <i class="fa-solid fa-magnifying-glass-plus fa-2x text-white"></i>
                         </div>
