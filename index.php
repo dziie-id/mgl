@@ -237,7 +237,7 @@ $random_art = $stmt_art->fetchAll();
                             <img src="<?= $path ?>" alt="Tips: <?= htmlspecialchars($art['judul']) ?> - MGL Sticker" class="card-img-top" style="height: 200px; object-fit: cover;">
                             <div class="card-body p-4">
                                 <small class="text-primary fw-bold"><?= date('d M Y', strtotime($art['created_at'])) ?></small>
-                                <img src="<?= $path ?>" alt="<?= htmlspecialchars($art['judul']) ?> - MGL Sticker Jakarta">" class="text-white text-decoration-none d-block my-2 h5 fw-bold hover-primary"><?= $art['judul'] ?></a>
+                                <a href="<?= BASE_URL ?>baca.php?slug=<?= $art['slug'] ?>" class="text-white text-decoration-none d-block my-2 h5 fw-bold hover-primary"><?= $art['judul'] ?></a>
                                 <p class="small text-white-50 mb-0"><?= substr(strip_tags($art['konten']), 0, 100) ?>...</p>
                             </div>
                         </div>
