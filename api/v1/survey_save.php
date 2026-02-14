@@ -20,6 +20,20 @@ try {
         exit;
     }
 
+    <?php
+// ... kodingan awal sama ...
+if (isset($_POST['simpan_survey_lengkap'])) {
+    $nama_klien = $_POST['nama_klien'];
+    $lokasi = $_POST['lokasi'];
+    $koordinat = $_POST['koordinat'] ?? ''; // TANGKAP KOORDINAT DARI APP
+
+    // Update Query INSERT
+    $stmt = $pdo->prepare("INSERT INTO surveys (nama_klien, lokasi, koordinat) VALUES (?, ?, ?)");
+    $stmt->execute([$nama_klien, $lokasi, $koordinat]);
+    $survey_id = $pdo->lastInsertId();
+    
+    // ... sisa kodingan simpan item sama ...
+}
     // 2. Simpan ke Tabel Induk (surveys)
     $stmt = $pdo->prepare("INSERT INTO surveys (nama_klien, lokasi) VALUES (?, ?)");
     $stmt->execute([$nama_klien, $lokasi]);
