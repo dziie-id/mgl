@@ -209,7 +209,7 @@ $random_art = $stmt_art->fetchAll();
             <?php foreach ($random_gal as $img): ?>
                 <div class="portfolio-item" data-aos="zoom-in">
                     <a href="<?= BASE_URL ?>uploads/gallery/<?= $img['file_name'] ?>" data-fancybox="gallery" data-caption="<?= $img['alt_text'] ?>">
-                        <img src="<?= $path ?>" alt="<?= htmlspecialchars($img['alt_text']) ?> - MGL Sticker Jakarta" loading="lazy">
+                        <img src="<?= BASE_URL ?>uploads/gallery/<?= $img['file_name'] ?>" alt="<?= $img['alt_text'] ?>" loading="lazy">
                         <div class="position-absolute inset-0 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 bg-dark bg-opacity-50 transition-all">
                             <i class="fa-solid fa-magnifying-glass-plus fa-2x text-white"></i>
                         </div>
@@ -238,7 +238,7 @@ $random_art = $stmt_art->fetchAll();
                             <img src="<?= $path ?>" class="card-img-top" style="height: 200px; object-fit: cover;">
                             <div class="card-body p-4">
                                 <small class="text-primary fw-bold"><?= date('d M Y', strtotime($art['created_at'])) ?></small>
-                                <a href="<?= BASE_URL ?>baca.php?slug=<?= $art['slug'] ?>" class="text-white text-decoration-none d-block my-2 h5 fw-bold hover-primary"><?= $art['judul'] ?></a>
+                                <img src="<?= $path ?>" alt="<?= htmlspecialchars($art['judul']) ?> - MGL Sticker Jakarta">" class="text-white text-decoration-none d-block my-2 h5 fw-bold hover-primary"><?= $art['judul'] ?></a>
                                 <p class="small text-white-50 mb-0"><?= substr(strip_tags($art['konten']), 0, 100) ?>...</p>
                             </div>
                         </div>
