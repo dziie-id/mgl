@@ -44,12 +44,7 @@ $random_art = $stmt_art->fetchAll();
         
         .navbar { background: rgba(11, 11, 11, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid #222; }
         
-        .hero { 
-            min-height: 100vh; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('/uploads/gallery/balut-mobil-wrapping-car-sticker-mgl-jakarta-1-1770834169.webp?auto=format&fit=crop&w=1920&q=80'); 
-            background-size: cover; background-position: center;
-            display: flex; align-items: center;
-            padding-top: 80px;
+       img.card-img-top
         }
 
         .hero h1 { font-size: 4.5rem; font-weight: 800; line-height: 1; margin-bottom: 20px; }
@@ -170,7 +165,8 @@ $random_art = $stmt_art->fetchAll();
                         <small class="text-primary fw-bold"><?= date('d M Y', strtotime($art['created_at'])) ?></small>
                         <a href="<?= BASE_URL ?>baca.php?slug=<?= $art['slug'] ?>" class="text-white text-decoration-none d-block my-2 h5 fw-bold hover-primary"><?= $art['judul'] ?></a>
                         <p class="small text-white-50 mb-0"><?= substr(strip_tags($art['konten']), 0, 100) ?>...</p>
-                    </div>
+                        <img src="<?= $path ?>" alt="<?= htmlspecialchars($art['judul']) ?> - MGL Sticker Jakarta">
+</div>
                 </div>
             </div>
             <?php endforeach; ?>
