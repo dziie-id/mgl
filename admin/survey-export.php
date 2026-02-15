@@ -1,5 +1,6 @@
 <?php
-// 1. Hidupkan error reporting untuk debugging jika error 500 muncul lagi
+date_default_timezone_set('Asia/Jakarta');
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
