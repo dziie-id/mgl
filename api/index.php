@@ -1,8 +1,16 @@
 <?php
 header("Content-Type: application/json");
 
-require "config.php";
-require "response.php";
+require_once "../includes/db.php";
+
+function response($status, $message = "", $data = null) {
+    echo json_encode([
+        "status" => $status,
+        "message" => $message,
+        "data" => $data
+    ]);
+    exit;
+}
 
 $module = $_GET['module'] ?? '';
 $action = $_GET['action'] ?? '';
@@ -26,5 +34,5 @@ switch ($module) {
         break;
 
     default:
-        response(false, "Module not found");
+        response(false, "Module tidak ditemukan");
 }
