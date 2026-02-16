@@ -92,7 +92,7 @@ try {
             ]);
         break;
 
-case 'map_markers':
+        case 'map_markers':
     // Kita cuma tarik ID, Nama, dan Koordinat biar irit kuota
     $stmt = $pdo->query("SELECT id, nama_klien, koordinat FROM surveys");
     $markers = $stmt->fetchAll();
