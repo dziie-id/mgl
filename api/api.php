@@ -92,6 +92,13 @@ try {
             ]);
         break;
 
+case 'map_markers':
+    // Kita cuma tarik ID, Nama, dan Koordinat biar irit kuota
+    $stmt = $pdo->query("SELECT id, nama_klien, koordinat FROM surveys");
+    $markers = $stmt->fetchAll();
+    echo json_encode(['status' => 'success', 'data' => $markers]);
+break;
+
         // --- B. GALLERY (LIST & DELETE) ---
         case 'gallery':
             // Hapus Banyak Sekaligus (Multi Delete)
