@@ -9,8 +9,8 @@ date_default_timezone_set('Asia/Jakarta');
 error_reporting(0); 
 header('Content-Type: application/json');
 
-[span_0](start_span)include '../../includes/db.php';[span_0](end_span)
-[span_1](start_span)include '../../admin/functions.php';[span_1](end_span)
+[span_0](start_span)include '../includes/db.php';[span_0](end_span)
+[span_1](start_span)include '../admin/functions.php';[span_1](end_span)
 
 // --- HELPER: AMBIL API KEY ---
 function getApiKey() {
