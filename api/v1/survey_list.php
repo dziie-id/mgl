@@ -1,12 +1,21 @@
 <?php
-include 'auth_check.php';
-$stmt = $pdo->query("SELECT * FROM surveys ORDER BY id DESC");
-echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll()]);
-}
+// Matikan error reporting agar tidak merusak format JSON
+error_reporting(0); 
 
-Future<Map<String, dynamic>> deleteSurvey(String token, String id) async {
-  // Pastikan URL mengarah ke survey_list.php?del=ID
-  final url = Uri.parse("${AppConfig.baseUrl}/survey_list.php?del=$id");
-  final res = await http.get(url, headers: {'X-API-KEY': token});
-  return json.decode(res.body);
+include 'auth_check.php';
+
+try {
+    // Ambil data klien
+    $stmt = $pdo->query("SELECT id, nama_klien, lokasi, koordinat FROM surveys ORDER BY id DESC");
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => $data
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => $e->getMessage()
+    ]);
 }
