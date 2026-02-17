@@ -5,10 +5,11 @@ header('Content-Type: application/json');
 
 include '../../includes/db.php';
 // Include fungsi watermark dari admin panel
-include '../../admin/functions.php'; 
+include '../../admin/functions.php';
 
 // --- HELPER: AMBIL API KEY ---
-function getApiKey() {
+function getApiKey()
+{
     // Cek Header (Android) atau GET (Browser)
     if (isset($_SERVER['HTTP_X_API_KEY'])) return $_SERVER['HTTP_X_API_KEY'];
     if (isset($_SERVER['X_API_KEY'])) return $_SERVER['X_API_KEY'];
@@ -24,11 +25,11 @@ $apiKey = getApiKey();
 if ($action == 'login') {
     $user = $_POST['username'] ?? '';
     $pass = $_POST['password'] ?? '';
-    
+
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->execute([$user]);
     $u = $stmt->fetch();
-    
+
     if ($u && password_verify($pass, $u['password'])) {
         // Generate token baru jika belum ada
         if (empty($u['api_token'])) {
@@ -37,7 +38,7 @@ if ($action == 'login') {
         } else {
             $token = $u['api_token'];
         }
-        
+
         echo json_encode([
             'status' => 'success',
             'api_key' => $token,
@@ -73,7 +74,7 @@ if (!$user_api) {
 // =======================================================================
 try {
     switch ($action) {
-        
+
         // --- A. DASHBOARD STATS ---
         case 'stats':
             $g = $pdo->query("SELECT COUNT(*) FROM galleries")->fetchColumn();
@@ -90,7 +91,7 @@ try {
             // Hapus Batch (Banyak sekaligus)
             if (isset($_GET['del_batch']) && $_SERVER['REQUEST_METHOD'] == 'POST') {
                 $ids = explode(',', $_POST['ids']);
-                foreach($ids as $id) {
+                foreach ($ids as $id) {
                     $stmt = $pdo->prepare("SELECT file_name FROM galleries WHERE id = ?");
                     $stmt->execute([$id]);
                     $img = $stmt->fetch();
@@ -102,13 +103,32 @@ try {
                 echo json_encode(['status' => 'success', 'message' => 'Foto berhasil dihapus']);
                 break;
             }
-            
-            // Ambil List
-            $data = $pdo->query("SELECT * FROM galleries ORDER BY id DESC")->fetchAll();
-            foreach($data as &$d) {
+
+            // AMBIL LIST DENGAN PAGINATION
+            $limit = 20; // Muat 20 foto per scroll
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+
+            // Hitung total halaman (biar Android tau kapan stop loading)
+            $total_data = $pdo->query("SELECT COUNT(*) FROM galleries")->fetchColumn();
+            $total_page = ceil($total_data / $limit);
+
+            $stmt = $pdo->prepare("SELECT * FROM galleries ORDER BY id DESC LIMIT :limit OFFSET :offset");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetchAll();
+
+            foreach ($data as &$d) {
                 $d['url_gambar'] = "https://mglstiker.com/uploads/gallery/" . $d['file_name'];
             }
-            echo json_encode(['status' => 'success', 'data' => $data]);
+
+            echo json_encode([
+                'status' => 'success',
+                'total_page' => $total_page,
+                'current_page' => $page,
+                'data' => $data
+            ]);
             break;
 
         // --- C. UPLOAD GALLERY (BAKED WATERMARK) ---
@@ -120,7 +140,7 @@ try {
             $p_name = $_POST['project_name'];
             $kat    = $_POST['kategori'];
             $slug   = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $p_name)));
-            
+
             // Ambil setting watermark terbaru
             $wm = $pdo->query("SELECT * FROM settings WHERE id = 1")->fetch();
 
@@ -131,7 +151,7 @@ try {
 
                 // 1. Resize Gambar (Biar ringan)
                 $image_res = resize_crop_image($tmp_name, 1200, 800);
-                
+
                 if ($image_res) {
                     // 2. Terapkan Watermark (Baking)
                     // Fungsi ini ada di admin/functions.php
@@ -158,72 +178,129 @@ try {
 
         // --- D. SURVEY LIST & DELETE ---
         case 'survey_list':
-            // Hapus Survey (Induk + Anak + Foto)
+            // 1. FITUR FAST DELETE (TETAP DIPERTAHANKAN)
             if (isset($_GET['del'])) {
                 $id = $_GET['del'];
+
+                // Ambil semua foto item dulu buat dihapus dari folder
                 $stmt = $pdo->prepare("SELECT foto_item FROM survey_items WHERE survey_id = ?");
                 $stmt->execute([$id]);
-                foreach($stmt->fetchAll() as $itm) {
-                    if (!empty($itm['foto_item'])) @unlink("../../uploads/survey/" . $itm['foto_item']);
+                foreach ($stmt->fetchAll() as $itm) {
+                    if (!empty($itm['foto_item'])) {
+                        @unlink("../../uploads/survey/" . $itm['foto_item']);
+                    }
                 }
+
+                // Hapus data di DB (Items otomatis hilang kalau pakai Cascade, tapi aman manual aja)
+                $pdo->prepare("DELETE FROM survey_items WHERE survey_id = ?")->execute([$id]);
                 $pdo->prepare("DELETE FROM surveys WHERE id = ?")->execute([$id]);
-                echo json_encode(['status' => 'success']);
-                break;
+
+                echo json_encode(['status' => 'success', 'message' => 'Survey dan semua item berhasil dihapus']);
+                break; // Stop di sini kalau cuma mau hapus
             }
 
-            $data = $pdo->query("SELECT * FROM surveys ORDER BY id DESC")->fetchAll();
-            echo json_encode(['status' => 'success', 'data' => $data]);
+            // 2. LIST DATA DENGAN PAGINATION (BIAR HP GAK LEMOT)
+            $limit = 10; // Muat 10 survey per scroll
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+
+            // Query ambil data survey
+            $sql = "SELECT * FROM surveys ORDER BY id DESC LIMIT $limit OFFSET $offset";
+            $data = $pdo->query($sql)->fetchAll();
+
+            // Hitung total buat info ke Android
+            $total = $pdo->query("SELECT COUNT(*) FROM surveys")->fetchColumn();
+
+            echo json_encode([
+                'status' => 'success',
+                'total_data' => $total,
+                'current_page' => $page,
+                'data' => $data
+            ]);
             break;
 
         // --- E. SURVEY DETAIL (ADD/EDIT ITEM) ---
         case 'survey_detail':
-            $id = $_GET['id'];
-            
-            // Hapus Item
+            $id = $_GET['id']; // ID Survey
+
+            // 1. HAPUS ITEM (TETAP SAMA)
             if (isset($_GET['del_item'])) {
                 $iid = $_GET['del_item'];
                 $f = $pdo->prepare("SELECT foto_item FROM survey_items WHERE id = ?");
                 $f->execute([$iid]);
                 $img = $f->fetch();
                 if ($img && !empty($img['foto_item'])) @unlink("../../uploads/survey/" . $img['foto_item']);
-                
+
                 $pdo->prepare("DELETE FROM survey_items WHERE id = ?")->execute([$iid]);
                 echo json_encode(['status' => 'success', 'message' => 'Item dihapus']);
                 break;
             }
 
-            // Simpan / Update Item
+            // 2. MENANGANI DATA MASUK (POST)
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                $act = $_GET['sub_action']; // add atau update
-                $nama = $_POST['nama_bagian'];
-                $p = $_POST['p']; $l = $_POST['l']; $t = $_POST['t']; $qty = $_POST['qty'];
+                $sub = $_GET['sub_action'] ?? ''; // Pembeda aksi
+
+                // --- BAGIAN 2A: UPDATE MASTER SURVEY (NAMA & ALAMAT) ---
+                // Android request ke: ?action=survey_detail&id=1&sub_action=update_master
+                if ($sub == 'update_master') {
+                    $nama = $_POST['nama_klien'];
+                    $lokasi = $_POST['lokasi'];
+                    // Koordinat opsional, kalau mau diupdate sekalian
+                    $gps = $_POST['koordinat'] ?? '';
+
+                    // Update Tabel Surveys (Induk)
+                    $sql = "UPDATE surveys SET nama_klien=?, lokasi=?";
+                    $params = [$nama, $lokasi];
+
+                    if (!empty($gps)) {
+                        $sql .= ", koordinat=?";
+                        $params[] = $gps;
+                    }
+                    $sql .= " WHERE id=?";
+                    $params[] = $id;
+
+                    $pdo->prepare($sql)->execute($params);
+                    echo json_encode(['status' => 'success', 'message' => 'Data pelanggan berhasil diubah']);
+                    break; // Stop biar gak lari ke bawah
+                }
+
+                // --- BAGIAN 2B: SIMPAN / UPDATE ITEM (KODE LAMA ABANG) ---
+                // Android request ke: ?action=survey_detail&id=1&sub_action=item_save
+                $act_item = $_POST['mode_item'] ?? 'add'; // add atau update
+                $nama_bg = $_POST['nama_bagian'];
+                $p = $_POST['p'];
+                $l = $_POST['l'];
+                $t = $_POST['t'];
+                $qty = $_POST['qty'];
                 $foto_db = $_POST['foto_lama'] ?? "";
 
-                // Upload Foto Baru (Jika Ada)
                 if (!empty($_FILES['foto']['name'])) {
                     if (!empty($foto_db)) @unlink("../../uploads/survey/" . $foto_db);
                     $foto_db = "API-SRV-" . time() . ".jpg";
                     move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/survey/" . $foto_db);
                 }
 
-                if ($act == 'update') {
+                if ($act_item == 'update') {
                     $iid = $_POST['item_id'];
                     $pdo->prepare("UPDATE survey_items SET nama_bagian=?, p=?, l=?, t=?, qty=?, foto_item=? WHERE id=?")
-                        ->execute([$nama, $p, $l, $t, $qty, $foto_db, $iid]);
+                        ->execute([$nama_bg, $p, $l, $t, $qty, $foto_db, $iid]);
                 } else {
                     $pdo->prepare("INSERT INTO survey_items (survey_id, nama_bagian, p, l, t, qty, foto_item) VALUES (?,?,?,?,?,?,?)")
-                        ->execute([$id, $nama, $p, $l, $t, $qty, $foto_db]);
+                        ->execute([$id, $nama_bg, $p, $l, $t, $qty, $foto_db]);
                 }
-                echo json_encode(['status' => 'success']);
+                echo json_encode(['status' => 'success', 'message' => 'Item berhasil disimpan']);
                 break;
             }
 
-            // Get Data
+            // 3. GET DATA (TAMPILAN DETAIL)
             $client = $pdo->query("SELECT * FROM surveys WHERE id = $id")->fetch();
             $items = $pdo->query("SELECT * FROM survey_items WHERE survey_id = $id ORDER BY id DESC")->fetchAll();
-            foreach($items as &$i) {
-                $i['url_foto'] = $i['foto_item'] ? "https://mglstiker.com/uploads/survey/".$i['foto_item'] : "";
+
+            // Tambah full URL buat foto item
+            foreach ($items as &$i) {
+                $i['url_foto'] = $i['foto_item'] ? "https://mglstiker.com/uploads/survey/" . $i['foto_item'] : "";
             }
+
             echo json_encode(['status' => 'success', 'client' => $client, 'items' => $items]);
             break;
 
@@ -232,12 +309,12 @@ try {
             $nama = $_POST['nama_klien'];
             $lok = $_POST['lokasi'];
             $gps = $_POST['koordinat'];
-            
+
             $pdo->prepare("INSERT INTO surveys (nama_klien, lokasi, koordinat) VALUES (?,?,?)")->execute([$nama, $lok, $gps]);
             $sid = $pdo->lastInsertId();
 
             $items = json_decode($_POST['items'], true);
-            foreach($items as $idx => $itm) {
+            foreach ($items as $idx => $itm) {
                 $f = "";
                 if (!empty($_FILES["foto_$idx"]['name'])) {
                     $f = "API-SRV-" . time() . "-$idx.jpg";
@@ -271,7 +348,7 @@ try {
                 // Cek username kembar
                 $cek = $pdo->prepare("SELECT id FROM users WHERE username = ?");
                 $cek->execute([$u]);
-                if($cek->rowCount() > 0) die(json_encode(['status' => 'error', 'message' => 'Username sudah ada']));
+                if ($cek->rowCount() > 0) die(json_encode(['status' => 'error', 'message' => 'Username sudah ada']));
 
                 $pdo->prepare("INSERT INTO users (username, password, nama_lengkap, role) VALUES (?,?,?,?)")
                     ->execute([$u, $p, $n, $r]);
@@ -283,7 +360,7 @@ try {
                 if ($user_api['role'] != 'admin') die(json_encode(['status' => 'error', 'message' => 'Hanya Admin']));
                 $uid = $_POST['user_id'];
                 if ($uid == $user_api['id']) die(json_encode(['status' => 'error', 'message' => 'Jangan hapus diri sendiri']));
-                
+
                 $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$uid]);
                 echo json_encode(['status' => 'success', 'message' => 'User dihapus']);
             }
@@ -317,8 +394,6 @@ try {
             echo json_encode(['status' => 'error', 'message' => 'Action tidak dikenal']);
             break;
     }
-
 } catch (Exception $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
-?>
