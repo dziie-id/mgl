@@ -26,38 +26,44 @@ $apiKey = getApiKey();
 // 1. LOGIN (Akses Awal untuk mendapatkan Token)
 // =======================================================================
 if ($action == 'login') {
+    // Bersihkan buffer biar nggak ada JSON dobel dari file lain
+    ob_clean(); 
+
     $user = $_POST['username'] ?? '';
     $pass = $_POST['password'] ?? '';
     
-    // Kita pakai $pdo sesuai koneksi di db.php Abang
+    if (empty($user) || empty($pass)) {
+        echo json_encode(['status' => 'error', 'message' => 'Isi username & password Bang!']);
+        exit;
+    }
+
+    // Pakai $pdo sesuai metode V1 Abang
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->execute([$user]);
-    $u = $stmt->fetch();
+    $res = $stmt->fetch();
     
-    // Cek password (support hash dan teks biasa biar gak mental)
-    if ($u && (password_verify($pass, $u['password']) || $pass === $u['password'])) {
-        
-        if (empty($u['api_token'])) {
-            $token = bin2hex(random_bytes(16));
-            $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$token, $u['id']]);
+    if ($res && password_verify($pass, $res['password'])) {
+        // Logika token Abang
+        if (empty($res['api_token'])) {
+            $token = bin2hex(random_bytes(32));
+            $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$token, $res['id']]);
         } else {
-            $token = $u['api_token'];
+            $token = $res['api_token'];
         }
         
         echo json_encode([
             'status' => 'success',
             'api_key' => $token,
-            'message' => 'Login Berhasil Bang!',
             'user_data' => [
-                'user_id' => $u['id'],
-                'nama' => $u['nama_lengkap'] ?? $u['username'],
-                'role' => $u['role']
+                'user_id' => $res['id'],
+                'nama' => $res['nama_lengkap'],
+                'role' => $res['role']
             ]
         ]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Username atau Password Salah']);
+        echo json_encode(['status' => 'error', 'message' => 'Username/Password salah']);
     }
-    exit;
+    exit; // Wajib Exit biar nggak lanjut ke baris bawahnya api.php
 }
 
 // =======================================================================
