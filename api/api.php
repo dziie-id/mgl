@@ -2,6 +2,7 @@
 header("Content-Type: application/json");
 error_reporting(0);
 include '../includes/db.php';
+include '../admin/functions.php'; 
 
 /* =========================
    HELPER RESPONSE
