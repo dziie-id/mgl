@@ -8,34 +8,60 @@ include '../admin/functions.php';
    HELPER RESPONSE
 ========================= */
 function response($status, $message, $data = null, $code = 200) {
-    // Bersihkan buffer biar nggak ada karakter liar atau JSON dobel
-    if (ob_get_length()) ob_clean(); 
-    
     http_response_code($code);
     echo json_encode([
         "success" => $status,
         "message" => $message,
         "data" => $data
     ]);
-    exit; // WAJIB EXIT biar gak bablas ke bawah!
+    exit;
 }
 
 /* =========================
    PARSE REQUEST
 ========================= */
-// Ambil action dari POST atau GET (Biar support Android & Browser)
-$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$method = $_SERVER['REQUEST_METHOD'];
+$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$segments = explode('/', $uri);
+$endpoint = end($segments);
 
 /* =========================
-   1. LOGIN (NO PROTECTED)
+   AUTH FUNCTION
 ========================= */
-if ($action === "login") {
-    // Android kirim Form-Urlencoded, tapi kita jagain kalau ada yang kirim JSON
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+function authenticate($pdo) {
+
+    $headers = getallheaders();
+    $authHeader = $headers['Authorization'] ?? '';
+
+    if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        response(false, "Unauthorized", null, 401);
+    }
+
+    $token = $matches[1];
+
+    $stmt = $pdo->prepare("SELECT id, nama_lengkap, role FROM users WHERE api_token=?");
+    $stmt->execute([$token]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        response(false, "Invalid Token", null, 403);
+    }
+
+    return $user;
+}
+
+/* =========================
+   LOGIN
+========================= */
+if ($endpoint === "login" && $method === "POST") {
+
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    $username = $input['username'] ?? '';
+    $password = $input['password'] ?? '';
 
     if (!$username || !$password) {
-        response(false, "Username & password wajib diisi Bang!", null, 400);
+        response(false, "Username & password wajib diisi", null, 400);
     }
 
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username=?");
@@ -43,13 +69,13 @@ if ($action === "login") {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password'])) {
-        response(false, "Login gagal, cek lagi pass-nya", null, 401);
+        response(false, "Login gagal", null, 401);
     }
 
-    // Token Logic
     if (empty($user['api_token'])) {
         $token = bin2hex(random_bytes(32));
-        $pdo->prepare("UPDATE users SET api_token=? WHERE id=?")->execute([$token, $user['id']]);
+        $pdo->prepare("UPDATE users SET api_token=? WHERE id=?")
+            ->execute([$token, $user['id']]);
     } else {
         $token = $user['api_token'];
     }
@@ -65,9 +91,9 @@ if ($action === "login") {
 }
 
 /* =========================
-   PROTECTED ROUTES (Selain Login harus lewat sini)
+   PROTECTED ROUTES
 ========================= */
-$currentUser = authenticate($pdo);
+$user = authenticate($pdo);
 
 /* =========================
    STATS
