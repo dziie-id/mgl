@@ -156,3 +156,4 @@ if ($endpoint === "surveys" && $method === "POST") {
 }
 
 response(false, "Endpoint tidak ditemukan", null, 404);
+?>
