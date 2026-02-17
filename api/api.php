@@ -26,32 +26,36 @@ $apiKey = getApiKey();
 // 1. LOGIN (Akses Awal untuk mendapatkan Token)
 // =======================================================================
 if ($action == 'login') {
-    $user = $_POST['username'] ?? [span_4](start_span)'';[span_4](end_span)
-    $pass = $_POST['password'] ?? [span_5](start_span)'';[span_5](end_span)
+    $user = $_POST['username'] ?? '';
+    $pass = $_POST['password'] ?? '';
     
-    [span_6](start_span)$stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");[span_6](end_span)
-    [span_7](start_span)$stmt->execute([$user]);[span_7](end_span)
-    [span_8](start_span)$u = $stmt->fetch();[span_8](end_span)
+    // Kita pakai $pdo sesuai koneksi di db.php Abang
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$user]);
+    $u = $stmt->fetch();
     
-    [span_9](start_span)if ($u && password_verify($pass, $u['password'])) {[span_9](end_span)
-        [span_10](start_span)if (empty($u['api_token'])) {[span_10](end_span)
-            [span_11](start_span)$token = bin2hex(random_bytes(16));[span_11](end_span)
-            [span_12](start_span)$pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$token, $u['id']]);[span_12](end_span)
+    // Cek password (support hash dan teks biasa biar gak mental)
+    if ($u && (password_verify($pass, $u['password']) || $pass === $u['password'])) {
+        
+        if (empty($u['api_token'])) {
+            $token = bin2hex(random_bytes(16));
+            $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$token, $u['id']]);
         } else {
-            [span_13](start_span)$token = $u['api_token'];[span_13](end_span)
+            $token = $u['api_token'];
         }
         
         echo json_encode([
             'status' => 'success',
             'api_key' => $token,
+            'message' => 'Login Berhasil Bang!',
             'user_data' => [
                 'user_id' => $u['id'],
-                [span_14](start_span)'nama' => $u['nama_lengkap'],[span_14](end_span)
-                [span_15](start_span)'role' => $u['role'][span_15](end_span)
+                'nama' => $u['nama_lengkap'] ?? $u['username'],
+                'role' => $u['role']
             ]
         ]);
     } else {
-        [span_16](start_span)echo json_encode(['status' => 'error', 'message' => 'Username atau Password Salah']);[span_16](end_span)
+        echo json_encode(['status' => 'error', 'message' => 'Username atau Password Salah']);
     }
     exit;
 }
