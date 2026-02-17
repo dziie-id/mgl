@@ -2,11 +2,11 @@
 header("Content-Type: application/json");
 error_reporting(0);
 include '../includes/db.php';
+// --- JURUS ANTI KERETA JSON ---
+ob_start(); // Tampung semua output liar (termasuk dari functions.php)
 include '../admin/functions.php'; 
-
-/* =========================
-   HELPER RESPONSE
-========================= */
+ob_clean(); // Buang tulisan "Action tidak dikenali" yang nyampah tadi
+// ------------------------------
 /* =========================
    HELPER RESPONSE
 ========================= */
