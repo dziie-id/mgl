@@ -25,45 +25,35 @@ $apiKey = getApiKey();
 // =======================================================================
 // 1. LOGIN (Akses Awal untuk mendapatkan Token)
 // =======================================================================
-if ($action == 'login') {
-    // Bersihkan buffer biar nggak ada JSON dobel dari file lain
-    ob_clean(); 
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-    $user = $_POST['username'] ?? '';
-    $pass = $_POST['password'] ?? '';
-    
-    if (empty($user) || empty($pass)) {
-        echo json_encode(['status' => 'error', 'message' => 'Isi username & password Bang!']);
-        exit;
-    }
+// Bersihkan output buffer supaya tidak ada karakter aneh sebelum JSON
+ob_start();
 
-    // Pakai $pdo sesuai metode V1 Abang
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->execute([$user]);
-    $res = $stmt->fetch();
-    
-    if ($res && password_verify($pass, $res['password'])) {
-        // Logika token Abang
-        if (empty($res['api_token'])) {
-            $token = bin2hex(random_bytes(32));
-            $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$token, $res['id']]);
-        } else {
-            $token = $res['api_token'];
-        }
-        
-        echo json_encode([
-            'status' => 'success',
-            'api_key' => $token,
-            'user_data' => [
-                'user_id' => $res['id'],
-                'nama' => $res['nama_lengkap'],
-                'role' => $res['role']
-            ]
-        ]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Username/Password salah']);
-    }
-    exit; // Wajib Exit biar nggak lanjut ke baris bawahnya api.php
+switch ($action) {
+    case 'login':
+        // Langsung panggil logika file login.php Abang yang sudah jalan di Flutter
+        include 'login.php'; 
+        break;
+
+    case 'stats':
+        include 'stats.php';
+        break;
+
+    case 'survey_list':
+        include 'survey_list.php';
+        break;
+
+    default:
+        echo json_encode(['status' => 'error', 'message' => 'Action tidak ditemukan']);
+        break;
+}
+
+// Ambil isi buffer dan bersihkan
+$output = ob_get_clean();
+echo $output;
+exit;
+// Wajib Exit biar nggak lanjut ke baris bawahnya api.php
 }
 
 // =======================================================================
