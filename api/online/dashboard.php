@@ -5,6 +5,12 @@ if (!$_SESSION['admin']) {
     header("Location: login.php");
 }
 
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
+
 // Logika Simpan Token & API Key
 if (isset($_POST['update_config'])) {
     $map_key = $_POST['map_key'];
@@ -69,6 +75,7 @@ $drivers = $conn->query("SELECT * FROM drivers");
             <?php endwhile; ?>
         </table>
     </div>
+    <a href="?logout=1" style="float:right; color:red; text-decoration:none; font-weight:bold;">LOGOUT</a>
 </body>
 
 </html>
