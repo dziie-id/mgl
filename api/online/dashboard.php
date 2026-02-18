@@ -12,14 +12,21 @@ if (isset($_POST['update_config'])) {
     $gojek = $_POST['gojek_token'];
     $grab = $_POST['grab_token'];
     $conn->query("UPDATE settings SET map_key='$map_key', gojek_token='$gojek', grab_token='$grab' WHERE id=1");
-    echo "<script>alert('Semua Data Berhasil Disimpan!');</script>";
+    echo "<script>alert('Semua Data Berhasil Disimpan!'); window.location='dashboard.php';</script>";
 }
 
-// 2. Tambah Driver Manual (Input ID Berapa aja)
+// 2. Tambah Driver Manual
 if (isset($_POST['add_driver'])) {
     $nama = $_POST['nama'];
     $hwid = $_POST['hwid'];
     $conn->query("INSERT INTO drivers (nama, hwid, status) VALUES ('$nama', '$hwid', 'active')");
+}
+
+// 3. Hapus Driver
+if (isset($_GET['hapus'])) {
+    $id = $_GET['hapus'];
+    $conn->query("DELETE FROM drivers WHERE id=$id");
+    header("Location: dashboard.php");
 }
 
 $settings = $conn->query("SELECT * FROM settings WHERE id=1")->fetch_assoc();
@@ -30,7 +37,7 @@ $drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
 <html>
 
 <head>
-    <title>Pusat Kendali GI</title>
+    <title>Dashboard Juragan GI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
@@ -60,62 +67,69 @@ $drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #555;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: monospace;
             font-size: 14px;
         }
 
-        textarea {
-            height: 100px;
-            resize: vertical;
+        /* INPUT STYLE GOOGLE: FIXED SATU BARIS */
+        .google-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 14px;
+            outline: none;
+            white-space: nowrap;
+            /* Paksa teks satu baris */
+            overflow-x: auto;
+            /* Kalau panjang bisa di-scroll ke samping */
+            background: #fff;
+        }
+
+        .google-input:focus {
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            border-color: rgba(0, 0, 0, 0);
         }
 
         .btn {
             padding: 12px 25px;
             border: none;
-            border-radius: 8px;
+            border-radius: 24px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
         }
 
         .btn-primary {
-            background: #007bff;
+            background: #1a73e8;
             color: white;
             width: 100%;
+            margin-top: 10px;
         }
 
         .btn-success {
             background: #28a745;
             color: white;
+            border-radius: 8px;
         }
 
         .btn:hover {
-            opacity: 0.9;
+            opacity: 0.8;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 12px;
-            overflow: hidden;
         }
 
         th,
@@ -128,12 +142,15 @@ $drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
         th {
             background: #f8f9fa;
             color: #666;
+            font-size: 13px;
         }
 
         code {
             background: #f1f1f1;
             padding: 3px 6px;
             border-radius: 4px;
+            font-size: 12px;
+            color: #d93025;
         }
     </style>
 </head>
@@ -141,57 +158,59 @@ $drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
 <body>
 
     <div class="container">
-        <h2>DASHBOARD JURAGAN MALL</h2>
-        <a href="?logout=1" style="color:red; text-decoration:none; font-weight:bold;">KELUAR</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>DASHBOARD GI</h2>
+            <a href="?logout=1" style="color:#1a73e8; text-decoration:none; font-weight:bold;">Sign Out</a>
+        </div>
 
         <div class="card">
-            <h3>Setelan API & Token (Full Width)</h3>
+            <h3>API Configuration</h3>
             <form method="POST">
                 <div class="form-group">
-                    <label>Google Maps API Key (Biar Peta Gak Blank):</label>
-                    <input type="text" name="map_key" value="<?= $settings['map_key'] ?>" placeholder="AIzaSy...">
+                    <label>Google Maps Key:</label>
+                    <input type="text" name="map_key" value="<?= $settings['map_key'] ?>" class="google-input">
                 </div>
 
                 <div class="form-group">
-                    <label>Token Gojek (JWT - ey...):</label>
-                    <textarea name="gojek_token" placeholder="Paste Token Gojek Disini..."><?= $settings['gojek_token'] ?></textarea>
+                    <label>Gojek Token (JWT):</label>
+                    <input type="text" name="gojek_token" value="<?= $settings['gojek_token'] ?>" class="google-input">
                 </div>
 
                 <div class="form-group">
-                    <label>Token Grab:</label>
-                    <textarea name="grab_token" placeholder="Paste Token Grab Disini..."><?= $settings['grab_token'] ?></textarea>
+                    <label>Grab Token:</label>
+                    <input type="text" name="grab_token" value="<?= $settings['grab_token'] ?>" class="google-input">
                 </div>
 
-                <button type="submit" name="update_config" class="btn btn-primary">SIMPAN SEMUA PERUBAHAN</button>
+                <button type="submit" name="update_config" class="btn btn-primary">SAVE ALL CHANGES</button>
             </form>
         </div>
 
         <div class="card">
-            <h3>Tambah ID Manual</h3>
-            <form method="POST" style="display: flex; gap: 15px;">
-                <input type="text" name="nama" placeholder="Nama Driver" required style="flex: 1;">
-                <input type="text" name="hwid" placeholder="HWID (ec8369...)" required style="flex: 2;">
-                <button type="submit" name="add_driver" class="btn btn-success" style="flex: 1;">TAMBAH & IJO-IN</button>
+            <h3>Add Driver Manual</h3>
+            <form method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="nama" placeholder="Name" required style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                <input type="text" name="hwid" placeholder="HWID (ec8369...)" required style="flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                <button type="submit" name="add_driver" class="btn btn-success">Add & Activate</button>
             </form>
         </div>
 
-        <div class="card" style="padding: 0;">
+        <div class="card" style="padding: 0; overflow: hidden;">
             <table style="margin: 0;">
                 <thead>
                     <tr>
-                        <th>Nama</th>
-                        <th>HWID Driver</th>
+                        <th>Driver Name</th>
+                        <th>HWID</th>
                         <th>Status</th>
-                        <th>Aksi</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($row = $drivers->fetch_assoc()): ?>
                         <tr>
-                            <td><?= $row['nama'] ?></td>
+                            <td><b><?= $row['nama'] ?></b></td>
                             <td><code><?= $row['hwid'] ?></code></td>
-                            <td><b style="color: <?= $row['status'] == 'active' ? 'green' : 'red' ?>;"><?= strtoupper($row['status']) ?></b></td>
-                            <td><a href="?hapus=<?= $row['id'] ?>" style="color:red; font-size: 12px;">Hapus</a></td>
+                            <td><span style="color: <?= $row['status'] == 'active' ? '#28a745' : '#d93025' ?>; font-weight:bold;"><?= strtoupper($row['status']) ?></span></td>
+                            <td><a href="?hapus=<?= $row['id'] ?>" onclick="return confirm('Hapus?')" style="color:#d93025; text-decoration:none; font-size: 13px;">Delete</a></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
