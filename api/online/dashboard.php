@@ -98,10 +98,10 @@ $drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
             <label><b>Google Maps API Key:</b></label>
             <input type="text" name="map_key" value="<?= $settings['map_key'] ?>">
 
-            <label><br><br><b>Token Gojek (ey...):</b></label>
+            <label><br>Token Gojek (ey...):</b></label>
             <textarea name="gojek_token"><?= $settings['gojek_token'] ?></textarea>
 
-            <label><br><b>Token Grab:</b></label>
+            <label><br>Token Grab:</b></label>
             <textarea name="grab_token"><?= $settings['grab_token'] ?></textarea>
 
             <button type="submit" name="update_config" class="btn-save">Simpan Semua Setting</button>
