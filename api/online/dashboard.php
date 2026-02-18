@@ -1,6 +1,13 @@
 <?php
 session_start();
 include "config.php";
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
 if (!isset($_SESSION['admin'])) {
     header("Location: index.php");
     exit();
