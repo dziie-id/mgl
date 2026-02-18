@@ -6,190 +6,154 @@ if (!isset($_SESSION['admin'])) {
     exit();
 }
 
-// ... logika simpan tetap sama ...
+// Logika simpan tetep sama biar gak ngerubah database
+if (isset($_POST['update_config'])) {
+    $map_key = $_POST['map_key'];
+    $gojek = $_POST['gojek_token'];
+    $grab = $_POST['grab_token'];
+    $conn->query("UPDATE settings SET map_key='$map_key', gojek_token='$gojek', grab_token='$grab' WHERE id=1");
+    echo "<script>alert('Data Updated!');</script>";
+}
 ?>
 
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Pusat Kendali GI</title>
+    <title>Admin GI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /* RESET CSS: BIAR GAK ADA SELA SAMA SEKALI */
-        body,
-        html {
+        body {
             margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #f4f7f6;
-        }
-
-        /* HEADER FULL WIDTH */
-        .header {
-            background: #333;
-            color: white;
             padding: 20px;
-            width: 100%;
-            box-sizing: border-box;
+            font-family: arial, sans-serif;
+            background: #fff;
+            color: #202124;
         }
 
-        /* CONTAINER DIBIKIN 100% BIAR SAMA KAYA MAP */
-        .full-container {
-            width: 100%;
-            margin: 0;
-            padding: 0;
+        .container {
+            max-width: 100%;
         }
 
-        /* CARD TANPA MARGIN SAMPING */
-        .card {
-            background: white;
-            padding: 30px;
-            margin-bottom: 2px;
-            /* Sela tipis antar section */
-            width: 100%;
-            box-sizing: border-box;
-            border-bottom: 1px solid #ddd;
+        .section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #dfe1e5;
+            padding-bottom: 20px;
         }
 
         h3 {
-            margin-top: 0;
-            color: #444;
-            border-left: 5px solid #007bff;
-            padding-left: 15px;
+            font-size: 16px;
+            font-weight: normal;
+            color: #70757a;
+            margin-bottom: 15px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #666;
-        }
-
+        /* Gaya Input Google: Bersih & Minimalis */
         input[type="text"],
         textarea {
             width: 100%;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            /* Oval ala search bar Google */
+            outline: none;
             box-sizing: border-box;
-            background: #fafafa;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            border-color: rgba(223, 225, 229, 0);
         }
 
         textarea {
-            height: 120px;
+            border-radius: 12px;
+            height: 60px;
         }
 
-        .btn-blue {
-            background: #007bff;
-            color: white;
+        /* Token panjang tetep masuk tanpa ngerusak layout */
+
+        .btn-save {
+            background: #1a73e8;
+            color: #fff;
             border: none;
-            padding: 20px;
-            width: 100%;
-            font-size: 18px;
-            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-weight: 500;
             cursor: pointer;
-            transition: 0.3s;
+            font-size: 14px;
         }
 
-        .btn-blue:hover {
-            background: #0056b3;
-        }
-
-        /* TABEL DRIVER JUGA FULL WIDTH */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
+        .btn-save:hover {
+            background: #1b66c9;
+            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            margin-top: 20px;
         }
 
-        th,
-        td {
-            padding: 20px;
+        td,
+        th {
+            padding: 12px;
+            border-bottom: 1px solid #ebebeb;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            font-size: 14px;
         }
 
         th {
-            background: #eee;
+            color: #70757a;
+            font-weight: normal;
         }
 
-        code {
-            background: #fff3cd;
-            padding: 5px;
-            border-radius: 3px;
-            font-size: 13px;
+        .hwid-code {
+            color: #d93025;
+            font-family: monospace;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <h2 style="margin:0;">JURAGAN MALL - PUSAT KENDALI</h2>
-        <a href="?logout=1" style="color:#ff4444; text-decoration:none;">LOGOUT</a>
-    </div>
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center;" class="section">
+            <h2 style="font-size:22px; font-weight:normal;">Settings</h2>
+            <a href="?logout=1" style="color:#1a73e8; text-decoration:none; font-size:14px;">Sign out</a>
+        </div>
 
-    <div class="full-container">
         <form method="POST">
-            <div class="card">
-                <h3>SETELAN GLOBAL (Google Maps & API)</h3>
-                <div class="form-group">
-                    <label>Google Maps API Key:</label>
-                    <input type="text" name="map_key" value="<?= $settings['map_key'] ?>" placeholder="Masukkan API Key Google Maps...">
-                </div>
-
-                <div class="form-group">
-                    <label>Token Gojek (JWT):</label>
-                    <textarea name="gojek_token" placeholder="Paste Token Gojek..."><?= $settings['gojek_token'] ?></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Token Grab:</label>
-                    <textarea name="grab_token" placeholder="Paste Token Grab..."><?= $settings['grab_token'] ?></textarea>
-                </div>
-
-                <button type="submit" name="update_config" class="btn-blue">SIMPAN SEMUA PERUBAHAN</button>
+            <div class="section">
+                <h3>Global Configuration</h3>
+                <input type="text" name="map_key" value="<?= $settings['map_key'] ?>" placeholder="Google Maps API Key">
+                <input type="text" name="gojek_token" value="<?= $settings['gojek_token'] ?>" placeholder="Gojek Token (ey...)">
+                <input type="text" name="grab_token" value="<?= $settings['grab_token'] ?>" placeholder="Grab Token">
+                <button type="submit" name="update_config" class="btn-save">Save changes</button>
             </div>
         </form>
 
-        <div class="card" style="background: #e9ecef;">
-            <h3>TAMBAH ID MANUAL</h3>
-            <form method="POST" style="display: flex; flex-direction: column; gap: 10px;">
-                <input type="text" name="nama" placeholder="Nama Driver" required>
-                <input type="text" name="hwid" placeholder="HWID (Contoh: ec8369...)" required>
-                <button type="submit" name="add_driver" style="padding: 15px; background: #28a745; color: white; border: none; font-weight: bold; cursor:pointer;">AKTIFKAN DRIVER</button>
-            </form>
-        </div>
-
-        <div class="table-container">
+        <div class="section">
+            <h3>Registered Drivers</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>DRIVER</th>
+                        <th>Name</th>
                         <th>HWID</th>
-                        <th>STATUS</th>
-                        <th>AKSI</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($row = $drivers->fetch_assoc()): ?>
                         <tr>
-                            <td><b><?= $row['nama'] ?></b></td>
-                            <td><code><?= $row['hwid'] ?></code></td>
-                            <td><span style="color: <?= $row['status'] == 'active' ? 'green' : 'red' ?>; font-weight:bold;"><?= strtoupper($row['status']) ?></span></td>
-                            <td><a href="?hapus=<?= $row['id'] ?>" style="color:red;">Hapus</a></td>
+                            <td><?= $row['nama'] ?></td>
+                            <td class="hwid-code"><?= $row['hwid'] ?></td>
+                            <td style="color: <?= $row['status'] == 'active' ? '#188038' : '#d93025' ?>;">
+                                <?= $row['status'] ?>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
