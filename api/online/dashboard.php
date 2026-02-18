@@ -1,81 +1,141 @@
 <?php
 session_start();
 include "config.php";
-if (!$_SESSION['admin']) {
-    header("Location: login.php");
-}
-
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header("Location: login.php");
+if (!isset($_SESSION['admin'])) {
+    header("Location: index.php");
     exit();
 }
 
-// Logika Simpan Token & API Key
+// 1. Simpan Setting (Token & Maps)
 if (isset($_POST['update_config'])) {
     $map_key = $_POST['map_key'];
-    $token = $_POST['gojek_token'];
-    $conn->query("UPDATE settings SET map_key='$map_key', gojek_token='$token' WHERE id=1");
+    $gojek = $_POST['gojek_token'];
+    $grab = $_POST['grab_token'];
+    $conn->query("UPDATE settings SET map_key='$map_key', gojek_token='$gojek', grab_token='$grab' WHERE id=1");
+    echo "<script>alert('Setting Tersimpan!');</script>";
 }
 
-// Logika Aktifkan Driver (Ijo-in HWID)
-if (isset($_GET['aktifkan'])) {
-    $id = $_GET['aktifkan'];
-    $conn->query("UPDATE drivers SET status='active' WHERE id=$id");
+// 2. Tambah Driver Manual
+if (isset($_POST['add_driver'])) {
+    $nama = $_POST['nama'];
+    $hwid = $_POST['hwid'];
+    $conn->query("INSERT INTO drivers (nama, hwid, status) VALUES ('$nama', '$hwid', 'active')");
 }
 
 $settings = $conn->query("SELECT * FROM settings WHERE id=1")->fetch_assoc();
-$drivers = $conn->query("SELECT * FROM drivers");
+$drivers = $conn->query("SELECT * FROM drivers ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Admin Mall GI</title>
+    <title>Dashboard Juragan GI</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+    </style>
 </head>
 
-<body style="font-family:sans-serif; padding:20px; background:#f4f4f4;">
-    <h2>Pusat Kendali Grand Indonesia</h2>
+<body>
+    <h2>Panel Control Grand Indonesia</h2>
 
-    <div style="background:white; padding:15px; border-radius:10px; margin-bottom:20px;">
-        <h3>Setelan Utama (Global)</h3>
+    <div class="card">
+        <h3>Settings Global (Maps & API)</h3>
         <form method="POST">
-            <label>Google Map API Key (Biar Gak Blank):</label><br>
-            <input type="text" name="map_key" value="<?= $settings['map_key'] ?>" style="width:100%"><br><br>
+            <label><b>Google Maps API Key:</b></label>
+            <input type="text" name="map_key" value="<?= $settings['map_key'] ?>">
 
-            <label>Token Gojek (Yang awalan ey...):</label><br>
-            <textarea name="gojek_token" style="width:100%; height:100px;"><?= $settings['gojek_token'] ?></textarea><br><br>
+            <label><br><br><b>Token Gojek (ey...):</b></label>
+            <textarea name="gojek_token"><?= $settings['gojek_token'] ?></textarea>
 
-            <button name="update_config" style="padding:10px 20px; background:green; color:white;">Simpan Perubahan</button>
+            <label><br><b>Token Grab:</b></label>
+            <textarea name="grab_token"><?= $settings['grab_token'] ?></textarea>
+
+            <button type="submit" name="update_config" class="btn-save">Simpan Semua Setting</button>
         </form>
     </div>
 
-    <div style="background:white; padding:15px; border-radius:10px;">
-        <h3>Daftar Driver (HWID)</h3>
-        <table border="1" width="100%" cellpadding="10" style="border-collapse:collapse;">
-            <tr style="background:#eee;">
+    <div class="card">
+        <h3>Tambah Driver Manual</h3>
+        <form method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="nama" placeholder="Nama Driver" required>
+            <input type="text" name="hwid" placeholder="HWID (Contoh: ec8369...)" required>
+            <button type="submit" name="add_driver" class="btn-save" style="margin: 0;">Tambah & Aktifkan</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Daftar Driver Aktif</h3>
+        <table>
+            <tr style="background: #f8f9fa;">
                 <th>Nama</th>
                 <th>HWID</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
-            <?php while ($d = $drivers->fetch_assoc()): ?>
+            <?php while ($row = $drivers->fetch_assoc()): ?>
                 <tr>
-                    <td><?= $d['nama'] ?></td>
-                    <td><code><?= $d['hwid'] ?></code></td>
-                    <td style="color: <?= $d['status'] == 'active' ? 'green' : 'red' ?>; font-weight:bold;">
-                        <?= $d['status'] ?>
-                    </td>
-                    <td>
-                        <a href="?aktifkan=<?= $d['id'] ?>">Aktifkan (Ijo-in)</a> |
-                        <a href="?hapus=<?= $d['id'] ?>" style="color:red;">Hapus</a>
-                    </td>
+                    <td><?= $row['nama'] ?></td>
+                    <td><code><?= $row['hwid'] ?></code></td>
+                    <td><b style="color: <?= $row['status'] == 'active' ? 'green' : 'red' ?>;"><?= strtoupper($row['status']) ?></b></td>
+                    <td><a href="?hapus=<?= $row['id'] ?>" onclick="return confirm('Hapus Driver?')" style="color:red;">Hapus</a></td>
                 </tr>
             <?php endwhile; ?>
         </table>
     </div>
-    <a href="?logout=1" style="float:right; color:red; text-decoration:none; font-weight:bold;">LOGOUT</a>
 </body>
 
 </html>
