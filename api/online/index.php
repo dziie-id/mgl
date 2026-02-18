@@ -31,7 +31,7 @@ if (isset($_POST['login'])) {
 
 <head>
     <title>Login Admin Mall</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             font-family: sans-serif;
@@ -42,6 +42,8 @@ if (isset($_POST['login'])) {
             align-items: center;
             height: 100vh;
             margin: 0;
+            padding: 20px;
+            /* Biar gak mepet layar */
         }
 
         .login-box {
@@ -49,17 +51,24 @@ if (isset($_POST['login'])) {
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            width: 300px;
+            width: 100%;
+            /* Biar lebar ngikutin layar */
+            max-width: 350px;
+            /* Tapi jangan kegedean di tablet */
             text-align: center;
+            box-sizing: border-box;
         }
 
         input {
             width: 100%;
-            padding: 10px;
+            padding: 15px;
+            /* Lebih tebel biar enak diketik di HP */
             margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 8px;
             border: none;
             box-sizing: border-box;
+            font-size: 16px;
+            /* Cegah auto-zoom di iPhone/Android */
         }
 
         button {
