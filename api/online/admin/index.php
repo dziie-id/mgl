@@ -155,11 +155,27 @@ if (isset($_GET['hapus'])) {
 function loadPeluru() {
     var service = document.getElementById("service_select").value;
     var box = document.getElementById("peluru_box");
-    if (service == "") { box.value = ""; return; }
     
+    if (service == "") {
+        box.value = "";
+        return;
+    }
+
+    // Kasih placeholder biar user tau lagi loading
+    box.value = "Sedang mengambil data...";
+
     fetch('get_peluru.php?service=' + service)
-        .then(response => response.text())
-        .then(data => { box.value = data; });
+        .then(response => {
+            if (!response.ok) throw new Error('File get_peluru.php tidak ditemukan!');
+            return response.text();
+        })
+        .then(data => {
+            // Bersihin data kalau ada spasi gak jelas
+            box.value = data.trim();
+        })
+        .catch(err => {
+            box.value = "ERROR: " + err.message;
+        });
 }
 </script>
 
