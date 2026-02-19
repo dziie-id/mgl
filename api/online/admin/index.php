@@ -1,80 +1,123 @@
 <?php 
 include '../config.php';
 if (!isset($_SESSION['login'])) { header("Location: login.php"); exit; }
+
+// --- LOGIKA 1: UPDATE PELURU (TOKEN/MAPS) ---
+if (isset($_POST['update_cfg'])) {
+    $service = aman($_POST['service_name']);
+    $val     = $_POST['token_value']; // Tanpa 'aman' agar karakter spesial JSON/Style Maps tidak rusak
+    
+    // Gunakan REPLACE INTO agar jika service_name sudah ada, dia meniban. Jika belum, dia menambah.
+    $sql = "REPLACE INTO app_config (service_name, token_value) VALUES ('$service', '$val')";
+    if (mysqli_query($conn, $sql)) {
+        $msg = ["success", "PELURU $service BERHASIL DIISI!"];
+    } else {
+        $msg = ["danger", "GAGAL ISI PELURU: " . mysqli_error($conn)];
+    }
+}
+
+// --- LOGIKA 2: TAMBAH/AKTIVASI DRIVER ---
+if (isset($_POST['add_user'])) {
+    $hwid = aman($_POST['hwid']);
+    $nama = aman($_POST['nama']);
+    $exp  = aman($_POST['exp']);
+    
+    $sql = "INSERT INTO users (hwid, nama_driver, status_aktif, tgl_expired) VALUES ('$hwid', '$nama', '1', '$exp')";
+    if (mysqli_query($conn, $sql)) {
+        $msg = ["success", "DRIVER $nama BERHASIL DIAKTIFKAN!"];
+    } else {
+        $msg = ["danger", "GAGAL AKTIVASI: HWID Mungkin Sudah Ada!"];
+    }
+}
+
+// --- LOGIKA 3: HAPUS DRIVER ---
+if (isset($_GET['hapus'])) {
+    $id = aman($_GET['hapus']);
+    if (mysqli_query($conn, "DELETE FROM users WHERE id = '$id'")) {
+        echo "<script>window.location='index.php';</script>";
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MGL - Melek Mode</title>
+    <title>MGL AUTO PANEL - GACOR MODE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #0f0f0f; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar { background: #1a1a1a; border-bottom: 2px solid #00d2ff; }
-        .card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h5 { color: #00d2ff; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        
-        /* Teks Label biar gak remang-remang */
-        label, .form-label { color: #f8f9fa !important; font-weight: 500; margin-bottom: 5px; }
+        body { background: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #161616; border-bottom: 2px solid #00d2ff; box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+        .card { background: #161616; border: 1px solid #333; border-radius: 12px; transition: 0.3s; }
+        .card:hover { border-color: #00d2ff; }
+        h5 { color: #00d2ff; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        label { color: #f8f9fa !important; font-weight: bold; margin-bottom: 5px; }
+        .form-control, .form-select { background: #222; border: 1px solid #444; color: #fff !important; }
+        .form-control:focus { background: #282828; border-color: #00d2ff; box-shadow: none; }
+        .table { color: #fff; border-color: #333; }
         .table thead { background: #00d2ff; color: #000; }
-        .table { color: #ffffff !important; }
-        
-        .form-control, .form-select { 
-            background: #252525; border: 1px solid #444; color: #fff !important; 
-        }
-        .form-control::placeholder { color: #777; }
-        .form-control:focus { background: #303030; border-color: #00d2ff; box-shadow: none; color: #fff; }
-        
-        .badge-expired { background: #ff4757; color: white; }
-        .badge-active { background: #2ed573; color: black; }
+        .btn-info { background: #00d2ff; border: none; color: #000; }
+        .btn-info:hover { background: #0099bb; }
+        code { color: #00d2ff; background: #1a1a1a; padding: 2px 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-4">
+<nav class="navbar navbar-dark mb-4 p-3">
     <div class="container">
-        <span class="navbar-brand fw-bold text-info"><i class="fas fa-microchip"></i> MGL AUTO PANEL <span class="badge bg-info text-dark" style="font-size: 0.5em;">v2.1</span></span>
-        <a href="logout.php" class="btn btn-danger btn-sm fw-bold">KELUAR <i class="fas fa-sign-out-alt"></i></a>
+        <span class="navbar-brand fw-bold text-info">
+            <i class="fas fa-bolt text-warning"></i> MGL AUTO PANEL <span class="badge bg-info text-dark ms-2">v2.5</span>
+        </span>
+        <a href="logout.php" class="btn btn-outline-danger btn-sm fw-bold">KELUAR <i class="fas fa-sign-out-alt"></i></a>
     </div>
 </nav>
 
 <div class="container">
+    <?php if(isset($msg)): ?>
+        <div class="alert alert-<?= $msg[0] ?> alert-dismissible fade show fw-bold mb-4">
+            <?= $msg[1] ?>
+            <button type="button" class="btn-close" data-bs-dismiss='alert'></button>
+        </div>
+    <?php endif; ?>
+
     <div class="row">
         <div class="col-md-4">
-            <div class="card p-4 mb-4">
+            <div class="card p-4 mb-4 shadow-lg">
                 <h5><i class="fas fa-crosshairs text-warning"></i> UPDATE PELURU</h5>
+                <hr class="border-secondary">
                 <form method="POST">
                     <div class="mb-3">
-                        <label>Pilih Layanan</label>
+                        <label>Layanan</label>
                         <select name="service_name" class="form-select">
                             <option value="gofood">Gojek Token</option>
                             <option value="grabfood">Grab Token</option>
-                            <option value="maps_style">Map Style (Google)</option>
+                            <option value="maps_style">Google Map Style</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label>Isi Peluru</label>
-                        <textarea name="token_value" class="form-control" rows="4" placeholder="Paste token atau style di sini..."></textarea>
+                        <label>Isi Peluru (Token/Style)</label>
+                        <textarea name="token_value" class="form-control text-info" rows="5" placeholder="Paste di sini..."></textarea>
                     </div>
-                    <button type="submit" name="update_cfg" class="btn btn-info w-100 fw-bold text-dark">ISI ULANG PELURU</button>
+                    <button type="submit" name="update_cfg" class="btn btn-info w-100 fw-bold">UPDATE DATA</button>
                 </form>
             </div>
 
-            <div class="card p-4">
-                <h5><i class="fas fa-key text-success"></i> AKTIVASI HWID</h5>
+            <div class="card p-4 shadow-lg">
+                <h5><i class="fas fa-user-plus text-success"></i> AKTIVASI DRIVER</h5>
+                <hr class="border-secondary">
                 <form method="POST">
                     <div class="mb-3">
                         <label>Hardware ID (HWID)</label>
-                        <input type="text" name="hwid" class="form-control" placeholder="Contoh: 8899-AABB-CC" required>
+                        <input type="text" name="hwid" class="form-control" placeholder="Contoh: XYZ-123" required>
                     </div>
                     <div class="mb-3">
                         <label>Nama Driver</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Nama Panggilan">
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Akun">
                     </div>
                     <div class="mb-3">
-                        <label>Masa Berlaku</label>
+                        <label>Expired Date</label>
                         <input type="date" name="exp" class="form-control" required>
                     </div>
                     <button type="submit" name="add_user" class="btn btn-success w-100 fw-bold">AKTIFKAN SEKARANG</button>
@@ -83,28 +126,31 @@ if (!isset($_SESSION['login'])) { header("Location: login.php"); exit; }
         </div>
 
         <div class="col-md-8">
-            <div class="card p-4">
-                <h5><i class="fas fa-list-ul"></i> DATABASE DRIVER AKTIF</h5>
+            <div class="card p-4 shadow-lg">
+                <h5><i class="fas fa-database text-info"></i> DRIVER TERDAFTAR</h5>
                 <div class="table-responsive mt-3">
-                    <table class="table table-bordered align-middle">
+                    <table class="table table-dark table-hover align-middle">
                         <thead>
                             <tr class="text-center">
-                                <th width="20%">Nama</th>
+                                <th>Driver</th>
                                 <th>HWID</th>
-                                <th width="25%">Expired</th>
-                                <th width="10%">Aksi</th>
+                                <th>Expired</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             $q = mysqli_query($conn, "SELECT * FROM users ORDER BY id DESC");
+                            if(mysqli_num_rows($q) == 0) echo "<tr><td colspan='4' class='text-center'>Belum ada driver aktif.</td></tr>";
                             while($d = mysqli_fetch_assoc($q)) {
                                 echo "<tr>
-                                    <td class='fw-bold text-info'>{$d['nama_driver']}</td>
-                                    <td><code class='text-light'>{$d['hwid']}</code></td>
-                                    <td class='text-center'><span class='badge badge-active'>{$d['tgl_expired']}</span></td>
+                                    <td class='fw-bold text-info'><i class='fas fa-user-circle'></i> {$d['nama_driver']}</td>
+                                    <td><code>{$d['hwid']}</code></td>
+                                    <td class='text-center'><span class='badge bg-dark border border-info text-info'>{$d['tgl_expired']}</span></td>
                                     <td class='text-center'>
-                                        <a href='?hapus={$d['id']}' class='btn btn-sm btn-outline-danger' onclick='return confirm(\"Hapus driver ini?\")'><i class='fas fa-trash'></i></a>
+                                        <a href='?hapus={$d['id']}' class='btn btn-sm btn-outline-danger' onclick='return confirm(\"Hapus driver ini?\")'>
+                                            <i class='fas fa-trash'></i>
+                                        </a>
                                     </td>
                                 </tr>";
                             }
@@ -117,9 +163,10 @@ if (!isset($_SESSION['login'])) { header("Location: login.php"); exit; }
     </div>
 </div>
 
-<footer class="text-center mt-5 mb-4 text-secondary" style="font-size: 0.8em; letter-spacing: 1px;">
-    DEVELOPED BY <span class="text-info">MGL STIKER TEAM</span> &copy; 2026
+<footer class="text-center mt-5 mb-4 text-secondary">
+    <small style="letter-spacing: 2px;">MGL STIKER TEAM &copy; 2026 | BUILT FOR GACOR</small>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
