@@ -85,24 +85,44 @@ if (isset($_GET['hapus'])) {
     <div class="row">
         <div class="col-md-4">
             <div class="card p-4 mb-4 shadow-lg">
-                <h5><i class="fas fa-crosshairs text-warning"></i> UPDATE PELURU</h5>
-                <hr class="border-secondary">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label>Layanan</label>
-                        <select name="service_name" class="form-select">
-                            <option value="gofood">Gojek Token</option>
-                            <option value="grabfood">Grab Token</option>
-                            <option value="maps_style">Google Map Style</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label>Isi Peluru (Token/Style)</label>
-                        <textarea name="token_value" class="form-control text-info" rows="5" placeholder="Paste di sini..."></textarea>
-                    </div>
-                    <button type="submit" name="update_cfg" class="btn btn-info w-100 fw-bold">UPDATE DATA</button>
-                </form>
-            </div>
+    <h5><i class="fas fa-crosshairs text-warning"></i> UPDATE PELURU</h5>
+    <hr class="border-secondary">
+    <form method="POST">
+        <div class="mb-3">
+            <label>Layanan</label>
+            <select name="service_name" id="service_select" class="form-select" onchange="loadPeluru()">
+                <option value="">-- Pilih Layanan --</option>
+                <option value="gofood">Gojek Token</option>
+                <option value="grabfood">Grab Token</option>
+                <option value="maps_style">Google Map Style</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label>Isi Peluru (Token/Style)</label>
+            <textarea name="token_value" id="peluru_box" class="form-control text-info" rows="5" placeholder="Pilih layanan dulu bang..."></textarea>
+        </div>
+        <button type="submit" name="update_cfg" class="btn btn-info w-100 fw-bold">UPDATE DATA</button>
+    </form>
+</div>
+
+<script>
+function loadPeluru() {
+    var service = document.getElementById("service_select").value;
+    var box = document.getElementById("peluru_box");
+    
+    if (service == "") {
+        box.value = "";
+        return;
+    }
+
+    // Kita minta data ke file helper (get_peluru.php)
+    fetch('get_peluru.php?service=' + service)
+        .then(response => response.text())
+        .then(data => {
+            box.value = data;
+        });
+}
+</script>
 
             <div class="card p-4 shadow-lg">
                 <h5><i class="fas fa-user-plus text-success"></i> AKTIVASI DRIVER</h5>
