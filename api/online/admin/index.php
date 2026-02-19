@@ -96,6 +96,7 @@ if (isset($_GET['hapus'])) {
                     <textarea name="token_value" id="peluru_box" class="form-control" rows="5" placeholder="Pilih layanan dulu..."></textarea>
                     
                     <button type="submit" name="update_cfg" class="btn btn-info w-100 fw-bold mt-3">UPDATE DATA</button>
+<button type="button" onclick="cekNyawaKey()" class="btn btn-outline-warning w-100 fw-bold mt-2">CEK NYAWA KEY</button>
                 </form>
             </div>
 
@@ -153,6 +154,22 @@ if (isset($_GET['hapus'])) {
 </footer>
 
 <script>
+    function cekNyawaKey() {
+    var key = document.getElementById("peluru_box").value;
+    var service = document.getElementById("service_select").value;
+
+    if (service !== "google_api_key") {
+        alert("Pilih layanan Google API Key dulu Bang!");
+        return;
+    }
+
+    // Kita test nembak static map pake key itu
+    var testUrl = "https://maps.googleapis.com/maps/api/staticmap?center=0,0&zoom=1&size=100x100&key=" + key;
+    
+    var img = new Image();
+    img.onload = function() { alert("GACOR! API Key Masih Idup."); };
+    img.onerror = function() { alert("MODAR! API Key udah di-suspend atau salah."); };
+    img.sr
 function loadPeluru() {
     var service = document.getElementById("service_select").value;
     var box = document.getElementById("peluru_box");
