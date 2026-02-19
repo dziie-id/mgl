@@ -85,11 +85,12 @@ if (isset($_GET['hapus'])) {
                 <form method="POST">
                     <label>Pilih Layanan</label>
                     <select name="service_name" id="service_select" class="form-select" onchange="loadPeluru()">
-                        <option value="">-- Pilih --</option>
-                        <option value="gofood">Gojek Token</option>
-                        <option value="grabfood">Grab Token</option>
-                        <option value="maps_style">Google Map Style</option>
-                    </select>
+    <option value="">-- Pilih --</option>
+    <option value="gofood">Gojek Token</option>
+    <option value="grabfood">Grab Token</option>
+    <option value="maps_style">Google Map Style</option>
+    <option value="google_api_key">Google API Key (Pulungan)</option> 
+</select>
                     
                     <label>Isi Peluru</label>
                     <textarea name="token_value" id="peluru_box" class="form-control" rows="5" placeholder="Pilih layanan dulu..."></textarea>
