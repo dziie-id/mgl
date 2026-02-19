@@ -1,34 +1,52 @@
 <?php
 include 'config.php';
 
-// Cek Header Rahasia
-$headers = apache_request_headers();
-$secret_key = "GueDriverGacor2026"; // Lu bebas ganti apa aja
+// 1. Setting Header Agar Responnya JSON
+header('Content-Type: application/json');
 
-if (!isset($headers['X-API-KEY']) || $headers['X-API-KEY'] !== $secret_key) {
-    header('HTTP/1.0 404 Not Found'); // Pura-pura file gak ada
+// 2. Proteksi Header: Cek apakah request bawa X-API-KEY rahasia
+$headers = apache_request_headers();
+if (!isset($headers['X-API-KEY']) || $headers['X-API-KEY'] !== $SECRET_KEY) {
+    http_response_code(403);
+    echo json_encode(["status" => "error", "message" => "Akses Ilegal!"]);
     exit;
 }
 
-$hwid = $_GET['hwid'];
+// 3. Ambil HWID dari Parameter GET
+$hwid = isset($_GET['hwid']) ? aman($_GET['hwid']) : '';
 
-// 1. Validasi Driver
+if (empty($hwid)) {
+    echo json_encode(["status" => "error", "message" => "HWID Tidak Ditemukan"]);
+    exit;
+}
+
+// 4. Cek Status Driver di Database
 $queryUser = mysqli_query($conn, "SELECT * FROM users WHERE hwid = '$hwid' AND status_aktif = '1' AND tgl_expired > NOW()");
 
 if (mysqli_num_rows($queryUser) > 0) {
-    // 2. Ambil SEMUA Config (Gojek, Grab, Maps)
+    $driver = mysqli_fetch_assoc($queryUser);
+    
+    // 5. Ambil Semua Peluru (Token & Maps Style)
     $configs = [];
     $queryCfg = mysqli_query($conn, "SELECT * FROM app_config");
-    while ($row = mysqli_fetch_assoc($resCfg)) {
-        // Kita simpan pake nama service sebagai Key-nya
+    while($row = mysqli_fetch_assoc($queryCfg)) {
         $configs[$row['service_name']] = $row['token_value'];
     }
 
+    // 6. Respon Sukses (Aplikasi Jadi Melek)
     echo json_encode([
         "status" => "success",
         "melek"  => true,
-        "config" => $configs // Isinya otomatis ada gofood, grabfood, maps_style, dll
+        "driver" => $driver['nama_driver'],
+        "exp"    => $driver['tgl_expired'],
+        "peluru" => $configs
     ]);
 } else {
-    echo json_encode(["status" => "error", "melek" => false]);
+    // 7. Respon Gagal (Aplikasi Tetap Butek)
+    echo json_encode([
+        "status" => "error",
+        "melek"  => false,
+        "message" => "HWID Belum Aktif atau Expired!"
+    ]);
 }
+?>
