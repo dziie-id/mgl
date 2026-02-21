@@ -1,29 +1,82 @@
+# ----------------------------------------------------------------------
+# MGLSTIKER ULTIMATE .HTACCESS - SECURITY & SEO BOOSTER
+# ----------------------------------------------------------------------
+
+# 1. KEAMANAN GLOBAL
+# Tutup semua daftar isi folder (Masalah folder /api/ selesai!)
+Options -Indexes
+
+# Blokir akses langsung ke file sensitif
+<FilesMatch "\.(zip|rar|tar|7z|log|sql|bak|ini|env|config)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 2. OPTIMASI URL & SEO
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # 1. Paksa HTTPS (Biar Google percaya web abang aman)
+    # A. Paksa ke Non-WWW (Biar kekuatan SEO fokus di satu URL)
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # B. Paksa HTTPS (Wajib buat SEO jaman sekarang)
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # 2. Sembunyikan .php di URL (Biar URL cantik/SEO Friendly)
-    # Contoh: mglstiker.com/galeri bukannya mglstiker.com/galeri.php
+    # C. Sembunyikan ekstensi .php
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}\.php -f
     RewriteRule ^([^\.]+)$ $1.php [NC,L]
 
-    # 3. Rule untuk Sitemap
+    # D. Sitemap Rule
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
-    # 4. Blokir akses ke folder includes (Keamanan)
+    # E. Proteksi Folder Includes
     RewriteRule ^includes/.*$ - [F,L]
+    
+    # F. Anti Script Injection
+    RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+    RewriteRule ^(.*)$ index.php [F,L]
 </IfModule>
 
-# Caching Gambar (Biar loading web kenceng, Google suka web kenceng)
+# 3. KOMPRESI GZIP (Biar web enteng, skor Google PageSpeed naik)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# 4. CACHING (Biar pengunjung lama nggak perlu download gambar ulang)
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType image/jpg "access plus 1 year"
     ExpiresByType image/jpeg "access plus 1 year"
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
 </IfModule>
+
+# 5. PROTEKSI HEADER (Keamanan Tambahan)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header append Vary: Accept-Encoding
+</IfModule>
+
+# 6. KUNCI FILE INI
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
